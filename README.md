@@ -1,124 +1,140 @@
-# ROX N — Surprise-Gated Neuromorphic Architecture
+# ROX N — the AI that proves the chip works
 
-## Chat track (`lm_track/rox_chat/`): everything code-related, done
+**Nebius × NVIDIA hackathon submission.**
 
-`arch.py` (478M/1025M configs verified, train/infer FOU+EME paths, RoPE
-default + PLHE flag) · `stage0.py` (PASS: trains, no collapse, PLHE kept)
-· `generate.py` (streaming + warmup-calibrated S) · `retrieval.py`
-(BM25 + two-stage STR) · `attachments.py` (TME, tool gate, lockout) ·
-`sft.py` + `dpo.py` (CPU-tested) · `bpe.py` (CPU-tested) · `evals.py`
-(ALL PASS) · `chat.py` (selftest OK) · `PLAN_500M_1B.md` (costs/stages).
-Remaining: GPU rental, 32K BPE finish, SFT/DPO runs, human ratings.
+Describe a chip in English. ROX N writes the RTL, writes an **independent
+reference model of the specification**, generates the testbench from that
+model, and drives a real toolchain — lint, simulation, synthesis with ABC,
+formal checks, and FPGA place-and-route with timing.
 
-## Final product: deployable per-domain artifacts + evaluation report
+It does not tell you the chip works. **It proves it, or it fails the gate and
+tells you why.**
 
-```powershell
-pip install -e ".[mitbih,export]"
-python run_final_eval.py            # trains, tunes, validates, writes docs/eval_report.md
-```
+![architecture](submission/assets/architecture.png)
 
-- `rox_n/train.py` — supervised training: FOU/expert/gate weights + the
-  surprise threshold itself (two-sided pressure: idle when quiet, fire on
-  labelled events).
-- `rox_n/tune.py` — per-deployment sweep (top-k, threshold init, experts):
-  cheapest shape within 0.02 of best val F1.
-- `rox_n/heads.py` — swappable input heads, one shared core (D=64);
-  ECG (MIT-BIH if present, else synthetic) + synthetic IMU/vibration.
-- `rox_n/robustness.py` — flatline / noise-storm / long-event /
-  wrong-head harness incl. flagged dense fallback (`fallback_patience`).
-- `rox_n/export.py` + `bench/measure_power.py` + `docs/edge_checklist.md`
-  — ONNX dense-twin export (verified 7.5e-08), int8 bench, power harness.
-- `rox_n/sdk.py` — `RoxN` save/load versioned artifacts
-  (`artifacts/<domain>_final.roxn`), wrong-head input guard.
-- `docs/` — `eval_report.md` (generated numbers), `related_work.md`
-  (verified citations), `quickstart.md`, `edge_checklist.md`.
-- Current measured state: ECG F1 0.50, IMU 0.17, vibration 0.17 —
-  the surprise heuristic suits spiky anomalies; burst-train vibration is
-  the known weak domain, stated in the report, not hidden.
+---
 
-## MVP demo: all three mechanisms, live, one shared surprise signal
+## The problem
 
-```powershell
-cd ROX-N
-pip install -r requirements.txt   # torch, numpy, matplotlib only; server is stdlib
-python run_demo.py --smoke        # headless check: 600 streamed steps + stage gates
-python run_demo.py                # live demo on http://localhost:8137
-```
+Every "AI writes Verilog" demo has the same hole: the model writes the design
+*and* the test, so the test agrees with the bug. It looks correct and isn't.
 
-Stage flow: watch idle (FOU grid dark, EME ECHO, PLHE HOLD, ~97% mult-adds
-saved) → press **⚡ INJECT ANOMALY** → surprise spikes, units fire, EME
-RE-EVALs all 4 experts, PLHE RE-LOCKs → settles back to idle.
+ROX N removes the model from the trust path.
 
-- `rox_n/plhe.py` — helix embedding, phase-integrated, freq re-estimated
-  immediately iff shared S > threshold else every 8th quiet step.
-- `rox_n/eme.py` — 4 experts; incumbent reused with gate skipped iff shared
-  S <= threshold, else full re-evaluation + all-expert mix.
-- `rox_n/stream.py` — timestep-by-timestep runner, dense baseline
-  side-by-side, analytic mult-add counts + wall ms/step for both paths.
-- `demo/index.html` — signal trace, surprise trace, 32-cell unit grid,
-  expert pills, FLOPs/latency numbers, inject button.
+## How it actually works
 
-Honesty notes for stage: headline = analytic mult-adds saved (hardware
-relevant). The ms/step readout is CPython wall-clock at N=128 — at this
-toy scale Python gating overhead exceeds the matmul savings, so dense can
-read faster; sparsity pays on hardware/at scale, not in a tiny CPU loop.
-Accuracy target is *close to* baseline, not beating it (smoke gate:
-F1_rox >= F1_den − 0.15).
+1. **Spec → design.** An LLM (Nebius Token Factory, NVIDIA-accelerated,
+   default `nvidia/llama-3.1-nemotron-70b-instruct`) proposes a design:
+   either a **graph of known-good blocks** or an RTL draft.
+2. **Spec → reference model.** A *Python model of the specification* is
+   written independently. It never sees the RTL.
+3. **Reference model → testbench.** `refsim` runs that model over a stimulus
+   schedule and **generates the testbench**: same inputs, every output
+   compared, every cycle.
+4. **The gate.** `lint → sim → synth (ABC) → formal → place & route`.
+   A chip is accepted only if all five pass.
 
-## Prototype (days 0-2): Delta-Gated Fire-Once Units in isolation
+Because the RTL and the expected behaviour come from two different processes,
+a pass means *the design matches the specification* — not that it matches
+itself. And the testbench is generated, so nobody can edit it into agreement
+with a broken design.
 
-**Goal:** prove the surprise gate correlates with real events — nothing else.
+## What is real today
 
-- One invention only: **Delta-Gated Fire-Once Units (FOUs)** with a global top-k surprise budget.
-- One dataset slice: MIT-BIH ECG record 100 via `wfdb`, with **synthetic fallback** (no download needed).
-- Batch inference only, no streaming server, no UI.
-- Hard-coded hyperparams in `rox_n/config.py`. No tuning infra.
-- Success = `outputs/surprise_vs_labels.png` shows surprise spiking on labelled anomalies,
-  plus `outputs/metrics.json` with active-compute fraction and surprise↔label correlation.
+| | |
+|---|---|
+| deterministic block library | **70 generators**, 39 with independent reference models |
+| gate | lint · simulation (iverilog) · synth (yosys + ABC) · formal · **place & route (nextpnr-ice40)** |
+| real timing | `stepper` 646 MHz · `segmux` 655 MHz · `reset_sync` 627 MHz · `cdc_sync` 627 MHz |
+| multi-block chip | `uart_loopback` — 613 cells / 159 FF, **135.9 MHz**, byte in → byte out |
+| catalogue | **44 / 50** designs built, each through the full gate |
+| agent surface | **429 tools**, 22/22 live self-checks (incl. browser control, web search) |
+| interface | OpenCode-style terminal UI with live thinking and tool trace |
 
-### Quickstart
+![composition](submission/assets/composition.png)
+
+*The UART loopback chip as ROX N sees it: four blocks, eleven nets, every
+connection width-checked before a line of Verilog is emitted.*
+
+## Quickstart
 
 ```powershell
-cd ROX-N
-pip install -r requirements.txt
-python run_prototype.py
-# or: python -m rox_n.evaluate
+# 1. hosted inference (optional — falls back to local Ollama)
+$env:NEBIUS_API_KEY = "..."        # Nebius Token Factory
+$env:ROX_NEBIUS_MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
+
+# 2. build and verify a chip
+cd ROX-N\lm_track\rox_chat
+py -3.15 -c "import chipflow; r = chipflow.build('demo', spec='an 8-bit counter'); print(chipflow.summary_text(r))"
+
+# 3. the terminal UI
+rox_tui\rox-tui.exe
 ```
 
-Outputs:
-- `outputs/surprise_vs_labels.png` — surprise score over time vs ground-truth anomaly labels
-- `outputs/active_fraction.png` — fraction of units fired per timestep
-- `outputs/metrics.json` — mean active fraction, FLOPs saved, F1 / correlation of surprise as detector
+The toolchain runs inside WSL; ROX N detects it automatically and, if it is
+missing, installs `iverilog verilator yosys gtkwave nextpnr-ice40` for you.
 
-### Layout
+## Results, including the failures
+
+[`submission/RESULTS.md`](submission/RESULTS.md) lists all 50 catalogue
+designs: what each one is, what it is used for, and either its area/timing or
+the exact reason it was rejected.
+
+The failure taxonomy is the point, not an embarrassment:
+
+| failure | count | meaning |
+|---|---|---|
+| testbench/elaboration | 5 | the model wrote a testbench that did not compile |
+| formal equivalence | 1 | the design failed `check -assert` against its own netlist |
+
+Every one of these 6 is a **model-generated** design. The 44 that pass include
+8 that were originally model failures, then rebuilt as deterministic generator
+blocks with independent reference models — `booth` (which exposed a real
+signed-accumulator overflow), `quadrature` (a Verilog signedness bug where
+`pos + step` with signed `step` and unsigned `pos` zero-extends −1 to +3), and
+`crc8`, `cdc_sync`, `manchester_enc`, `reset_sync`, `uart_parity`, `bitrev`.
+
+We report **44/50** because the gate refused the rest.
+
+## Why Nebius × NVIDIA
+
+- The design model runs on **Nebius Token Factory** (OpenAI-compatible,
+  NVIDIA-accelerated, default `nvidia/llama-3.1-nemotron-70b-instruct`). The
+  adapter is endpoint-agnostic: point `ROX_NEBIUS_URL` at an **NVIDIA NIM**
+  endpoint and the same agent uses it.
+- Everything that *decides* runs locally and deterministically. No network
+  dependency in the verification path — a demo cannot be derailed by Wi-Fi.
+- The architecture is a statement about AI reliability: **the model proposes,
+  the tools decide.**
+
+## Honest limits
+
+- Place-and-route targets **iCE40 FPGA**, not an ASIC. The timing numbers are
+  real; ASIC mapping is future work.
+- 44/50, not 50/50.
+- The local machine has no NVIDIA GPU; the GPU work happens in Nebius
+  inference.
+
+## Repository layout
 
 ```
-ROX-N/
-  rox_n/
-    config.py      # hard-coded hyperparams (top-k, threshold, dims)
-    fou.py         # Delta-Gated Fire-Once layer + dense baseline
-    baseline.py    # (thin wrapper — dense reference uses same weights)
-    data.py        # MIT-BIH slice loader + synthetic ECG fallback
-    evaluate.py    # batch eval: surprise trace, metrics, plots
-  run_prototype.py # one-command entry point
-  notebooks/
-    prototype_fou.ipynb  # same eval, notebook form
-  outputs/         # generated plots + metrics
+submission/
+  README.md           judge-facing writeup
+  ARCHITECTURE.md     the verification design in detail
+  RESULTS.md          all 50 designs, verified and rejected
+  DEMO.md             3-minute demo script
+  assets/             architecture, composition graph, die map, gate schematic, 3D package,
+                      plus 3:2 gallery exports in assets/gallery/
+lm_track/rox_chat/
+  chipflow/           the engine: blocks, reference models, gate, P&R, composition
+  rox_tui/            the terminal UI (Go)
+  nemotron_bench.py   hosted-model benchmark (the form's numbers)
+  tools_selftest.py   429-tool self-test
+docs/
+  NEUROMORPHIC.md     the earlier neuromorphic architecture track
 ```
 
-### What FOU does (prototype semantics)
+---
 
-Per timestep `t`, input window `x_t in R^D`, `N` units:
-
-1. Cheap surprise per unit: `s_i = ||x_t - x_cache_i||_2` (raw L2; the proposal's
-   `1 - cos_sim` saturates on overlapping sliding windows — see `rox_n/fou.py` header).
-2. Fire set = top-`k` units among those with `s_i > threshold`. If none exceed, **fire zero** (fully idle — this is the "boring world" savings).
-3. Fired units compute `y_i = ReLU(W_i x_t + b_i)`, update `x_cache_i` and `y_cache_i`. Unfired return `y_cache_i`.
-4. Global trace `S_t = min(s_i)` (distance to best-matching cache) is what we plot against anomaly labels.
-
-Dense baseline = same `W, b`, computes all `N` units every step (active fraction = 1.0).
-
-### Prototype scope (deliberately excluded)
-
-No PLHE, no EME, no live streaming, no demo UI, no training loop.
-PLHE/EME hook into the same `S_t` signal later — `fou.py` already exposes it.
+> "Anyone can make a model write Verilog. ROX N makes it prove the chip
+> works — or refuses to call it a chip."
