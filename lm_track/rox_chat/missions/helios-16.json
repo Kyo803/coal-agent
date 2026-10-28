@@ -1,0 +1,24 @@
+{
+  "name": "helios-16",
+  "title": "HELIOS-16 — a complete 16-bit CPU",
+  "stack": "hdl",
+  "description": "Build HELIOS-16: a 16-bit RISC CPU with a 16-register file, a 16-bit ALU (ADD/SUB/AND/OR/XOR/SHL/SHR/CMP), a 3-stage control unit (FETCH/DECODE/EXECUTE), program memory (256x16), data memory (64Kx16), and program counter with branching. It must execute a small test program (compute 5+3 and store the result) and the testbench must print HELIOS16:PASS when the computed value is correct.",
+  "context": "16-bit RISC. Instructions: 0000 LOAD, 0001 STORE, 0010 ADD, 0011 SUB, 0100 AND, 0101 OR, 0110 XOR, 0111 SHL, 1000 SHR, 1001 CMP, 1010 JMP, 1011 JEQ, 1100 SET. Formats: R-type (op, rd, rs), L/S (op, rd, addr), branch (op, addr). regfile = 16 x 16-bit. ALU flags NZC. Synchronous, positive-edge clk. Test program: set r0=5, r1=3, r0=r0+r1, store r0 to address 0x0020; testbench asserts mem[0x20]==8 and prints HELIOS16:PASS.",
+  "manifest": [
+    {"path": "alu.v", "purpose": "16-bit ALU with NZC flags; op 0000..1001", "ports": "input [3:0] op, input [15:0] a, input [15:0] b, output reg [15:0] y, output reg z, output reg n, output reg c", "behavior": "check a=5,b=3 under op ADD(0010) yields y=8,z=0,n=0; SUB(0011) yields y=2; AND(0100) 0x0FF0 & 0x0F0F -> 0x0F00; OR/ XOR sanity; SLT/CMP set flags. end print alu:PASS only if all match."},
+    {"path": "regfile.v", "purpose": "16 x 16-bit register file, 2 read 1 write, synchronous write", "ports": "input clk, input [3:0] rs, input [3:0] rt, input [3:0] rd, input we, input [15:0] wdata, output [15:0] a, output [15:0] b", "behavior": "write 16'hCAFE to rd=5 on posedge with we=1, then read rs=5/rt=3 and assert a==16'hCAFE and b==0; write must be registered on the clock edge. print regfile:PASS only if correct."},
+    {"path": "control.v", "purpose": "3-stage state machine decoding the instruction", "ports": "input clk, input rst, input [15:0] instr, output reg [3:0] alu_op, output reg we, output reg [15:0] imm, output reg mem_we"},
+    {"path": "datapath.v", "purpose": "ties alu + regfile + control; computes next pc; jumps/branches", "ports": "input clk, input rst, input [15:0] instr, input [15:0] dmem_out, output reg [15:0] pc, output [15:0] alu_y, output [15:0] rs_data, output [15:0] rt_data, output reg mem_we, output reg [15:0] dmem_addr"},
+    {"path": "program_mem.v", "purpose": "256x16 ROM containing the test program; always_comb read on addr", "ports": "input [7:0] addr, output reg [15:0] dout"},
+    {"path": "data_mem.v", "purpose": "64K x 16 synchronous RAM; we on clk", "ports": "input clk, input we, input [15:0] addr, input [15:0] din, output reg [15:0] dout"},
+    {"path": "cpu.v", "purpose": "top: instantiate datapath + program_mem + data_mem", "ports": "input clk, input rst, output [15:0] out"},
+    {"path": "tb_cpu.v", "purpose": "testbench: run the program, check data_mem[0x20]==8, print HELIOS16:PASS", "ports": ""}
+  ],
+  "criteria": [
+    "file:/home/rox/work/helios-16/cpu.v",
+    "file:/home/rox/work/helios-16/tb_cpu.v",
+    "contains:HELIOS16:PASS",
+    "runs:sh -c \"cd /home/rox/work/helios-16 && iverilog -g2012 -o /tmp/cpu.out cpu.v datapath.v alu.v regfile.v control.v program_mem.v data_mem.v tb_cpu.v && vvp /tmp/cpu.out\""
+  ],
+  "notes": "This is the flagship chip project; expect multiple repair rounds."
+}

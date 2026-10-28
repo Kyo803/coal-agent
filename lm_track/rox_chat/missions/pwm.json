@@ -1,0 +1,15 @@
+{
+  "name": "pwm",
+  "title": "ROX-PWM — PWM generator",
+  "stack": "hdl",
+  "description": "Build a PWM generator with an 8-bit duty and 8-bit period. Output is high while the internal counter is below duty, else low. Testbench prints pwm:PASS.",
+  "context": "Synchronous, posedge clk. counter counts 0..period-1 then wraps. pwm=1 when counter < duty. duty>=period -> always high; duty==0 -> always low. Testbench CHECKs: duty=0 -> pwm stays 0; duty=period -> pwm stays 1; for duty=period/2 the output has a roughly 50% high time over one period. print pwm:PASS.",
+  "manifest": [
+    {"path": "pwm.v", "purpose": "8-bit PWM generator", "ports": "input clk, input rst, input [7:0] duty, input [7:0] period, output reg pwm", "behavior": "duty=0 => pwm always 0; duty>=period => pwm always 1; duty=period/2 => ~50% high per period. print pwm:PASS."}
+  ],
+  "criteria": [
+    "file:/home/rox/work/pwm/pwm.v",
+    "contains:pwm:PASS",
+    "runs:sh -c \"cd /home/rox/work/pwm && iverilog -g2012 -o /tmp/pwm.out pwm.v tb_pwm.v && vvp /tmp/pwm.out\""
+  ]
+}

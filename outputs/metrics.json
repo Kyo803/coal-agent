@@ -1,0 +1,19 @@
+{
+  "source": "mitdb/100",
+  "timesteps": 1235,
+  "anomaly_rate": 0.026720647773279354,
+  "config": {
+    "n_units": 128,
+    "top_k": 16,
+    "threshold": 8.0,
+    "window": 64,
+    "stride": 4
+  },
+  "mean_active_fraction": 0.03350202429149798,
+  "flops_saved_vs_dense": 0.966497975708502,
+  "hard_ceiling_active": 0.125,
+  "surprise_detector_thr": 16.959989738464355,
+  "surprise_f1_vs_labels": 0.0,
+  "surprise_label_corr": 0.11378817047466064,
+  "mean_output_deviation_vs_dense": 0.17547527986016834
+}

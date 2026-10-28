@@ -1,0 +1,12 @@
+{
+ "base": {
+  "acc": 0.611,
+  "n": 36,
+  "identity": "I'm a small assistant designed to help with everyday tasks, such as answering qu"
+ },
+ "ours": {
+  "acc": 0.5,
+  "n": 36,
+  "identity": "I am a small assistant built in the ROX N project."
+ }
+}

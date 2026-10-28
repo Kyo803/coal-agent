@@ -1,0 +1,15 @@
+{
+  "name": "fifo8",
+  "title": "ROX-FIFO8 — 8x8 synchronous FIFO",
+  "stack": "hdl",
+  "description": "Build an 8-deep, 8-bit-wide synchronous FIFO with write/read enables and full/empty flags. Testbench prints fifo8:PASS.",
+  "context": "Simple circular buffer, depth 8. wr push (when not full), rd pop (when not empty); dout shows the current head (first-out) combinationally. empty=1 when count==0, full=1 when count==8. count is internal 4-bit. Testbench: reset -> empty=1; write 8'hAA then read and CHECK dout=8'hAA; fill 8 entries CHECK full=1; drain CHECK empty=1. print fifo8:PASS.",
+  "manifest": [
+    {"path": "fifo8.v", "purpose": "8x8 synchronous FIFO", "ports": "input clk, input rst, input wr, input rd, input [7:0] din, output [7:0] dout, output reg full, output reg empty", "behavior": "after reset empty=1,full=0; wr=1 with din=AA then rd=1 -> dout=AA; after 8 pushes full=1; after draining all empty=1. print fifo8:PASS if correct."}
+  ],
+  "criteria": [
+    "file:/home/rox/work/fifo8/fifo8.v",
+    "contains:fifo8:PASS",
+    "runs:sh -c \"cd /home/rox/work/fifo8 && iverilog -g2012 -o /tmp/fifo8.out fifo8.v tb_fifo8.v && vvp /tmp/fifo8.out\""
+  ]
+}

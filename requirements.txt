@@ -1,0 +1,7 @@
+# ROX N — prototype requirements (days 0-2: FOU only)
+torch>=2.0
+numpy>=1.24
+matplotlib>=3.7
+wfdb>=4.1  # optional: for real MIT-BIH slice; synthetic fallback works without it
+scikit-learn>=1.3  # optional: for F1; pure-numpy fallback included
+jupyter>=1.0  # optional: to open notebooks/prototype_fou.ipynb

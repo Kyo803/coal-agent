@@ -1,0 +1,21 @@
+{
+ "factuality": {
+  "direct": 0.667,
+  "str_upper_bound": 1.0,
+  "retrieve_rate": 0.889
+ },
+ "coherence": {
+  "kept_verbatim": true,
+  "probe_hit": true
+ },
+ "fallbacks": {
+  "index_down": true,
+  "miss": true,
+  "tool": true,
+  "lockout": true
+ },
+ "bigindex": {
+  "ms": 2.0,
+  "hit": true
+ }
+}

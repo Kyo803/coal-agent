@@ -1,0 +1,546 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+ "accuracy": 0.6666666666666666,
+ "rows": [
+  {
+   "q": "What is the capital of France?",
+   "gold": "Paris",
+   "out": "The capital of France is Paris.",
+   "correct": true,
+   "min_prob": 0.7728707790374756,
+   "mean_logprob": -0.06522306154208302,
+   "disagree": 0.0,
+   "q_fam": -3.884219527372796,
+   "samples": [
+    "The capital of France is Paris.",
+    "The capital of France is Paris.",
+    "The capital of France is Paris."
+   ]
+  },
+  {
+   "q": "What is 7 times 8?",
+   "gold": "56",
+   "out": "7 times 8 is 56.",
+   "correct": true,
+   "min_prob": 0.2985561192035675,
+   "mean_logprob": -0.2987599021862616,
+   "disagree": 0.75,
+   "q_fam": -4.056285532932222,
+   "samples": [
+    "The answer is 54.",
+    "7 * 8 = 56",
+    "To find 7 times 8, we need to first multiply 7 by itself 8 times."
+   ]
+  },
+  {
+   "q": "What planet is known as the Red Planet?",
+   "gold": "Mars",
+   "out": "The Red Planet is known as Mars.",
+   "correct": true,
+   "min_prob": 0.3315322697162628,
+   "mean_logprob": -0.3920005938378225,
+   "disagree": 0.75,
+   "q_fam": -4.084516700501999,
+   "samples": [
+    "The Red Planet is often referred to as the Red Planet due to its reddish hue, which is a result of the presence of iron oxide in its atmosphere.",
+    "The Red Planet is known as the Red Planet due to its reddish-hued surface and the presence of the reddish-brown dust particles.",
+    "The Red Planet is a planet in the outer reaches of our solar system known for its reddish hue, which is caused by the presence of iron oxide, also known"
+   ]
+  },
+  {
+   "q": "How many days are in a leap year?",
+   "gold": "366",
+   "out": "A leap year is a year that has 29 or 28 days, depending on the century year.",
+   "correct": false,
+   "min_prob": 0.11682014912366867,
+   "mean_logprob": -0.5883651658612633,
+   "disagree": 0.75,
+   "q_fam": -4.030052504262471,
+   "samples": [
+    "A leap year is 4 non-leap years.",
+    "A leap year is a year that has 29 days in the leap year.",
+    "A leap year is a year that has 366 days instead of 365."
+   ]
+  },
+  {
+   "q": "What is the chemical symbol for gold?",
+   "gold": "Au",
+   "out": "The chemical symbol for gold is Au.",
+   "correct": true,
+   "min_prob": 0.7769291996955872,
+   "mean_logprob": -0.07517641206173903,
+   "disagree": 0.0,
+   "q_fam": -4.118604579922508,
+   "samples": [
+    "The chemical symbol for gold is Au.",
+    "The chemical symbol for gold is Au.",
+    "The chemical symbol for gold is Au."
+   ]
+  },
+  {
+   "q": "What is the capital of Japan?",
+   "gold": "Tokyo",
+   "out": "The capital of Japan is Tokyo.",
+   "correct": true,
+   "min_prob": 0.765678346157074,
+   "mean_logprob": -0.09275911610527758,
+   "disagree": 0.0,
+   "q_fam": -3.982065137562423,
+   "samples": [
+    "The capital of Japan is Tokyo.",
+    "The capital of Japan is Tokyo.",
+    "The capital of Japan is Tokyo."
+   ]
+  },
+  {
+   "q": "What is 12 squared?",
+   "gold": "144",
+   "out": "12 squared is 12 * 12 = 144",
+   "correct": true,
+   "min_prob": 0.32141631841659546,
+   "mean_logprob": -0.3195222941667249,
+   "disagree": 0.5,
+   "q_fam": -4.183012192582829,
+   "samples": [
+    "12 squared is the square of 12.",
+    "12 squared is 12 * 12 = 144",
+    "12 squared is 144."
+   ]
+  },
+  {
+   "q": "What gas do plants absorb from the atmosphere?",
+   "gold": "carbon dioxide",
+   "out": "Plants absorb carbon dioxide from the atmosphere through photosynthesis, which converts sunlight into energy.",
+   "correct": true,
+   "min_prob": 0.19166713953018188,
+   "mean_logprob": -0.6219501282859461,
+   "disagree": 0.75,
+   "q_fam": -4.285832552656545,
+   "samples": [
+    "The plants absorb the gas from the atmosphere, usually carbon dioxide and water vapor, through their stomata.",
+    "Plants absorb gases like carbon dioxide, methane, and oxygen from the atmosphere through specialized structures called stomata, which open to allow carbon dioxide to enter and oxygen to",
+    "The plants absorb the gas from the atmosphere through a process called gas exchange."
+   ]
+  },
+  {
+   "q": "How many continents are there?",
+   "gold": "7",
+   "out": "There are 16 continents in total, including Antarctica.",
+   "correct": false,
+   "min_prob": 0.2071877419948578,
+   "mean_logprob": -0.7755737473507994,
+   "disagree": 0.75,
+   "q_fam": -4.190828714424558,
+   "samples": [
+    "There are 5 continents in total.",
+    "There are 7 continents in the world.",
+    "There are 7 continents in total, covering the Earth's continents and islands."
+   ]
+  },
+  {
+   "q": "What is the largest ocean on Earth?",
+   "gold": "Pacific",
+   "out": "The largest ocean on Earth is the Pacific Ocean.",
+   "correct": true,
+   "min_prob": 0.4244700074195862,
+   "mean_logprob": -0.18964343267171058,
+   "disagree": 0.25,
+   "q_fam": -3.97511431168538,
+   "samples": [
+    "The largest ocean on Earth is the Pacific Ocean, with its vast expanse spanning over 79,000 miles (127,000",
+    "The largest ocean on Earth is the Pacific Ocean.",
+    "The largest ocean on Earth is the Pacific Ocean."
+   ]
+  },
+  {
+   "q": "What year did the Berlin Wall fall?",
+   "gold": "1989",
+   "out": "The Berlin Wall Falled in 1989",
+   "correct": true,
+   "min_prob": 0.3058074414730072,
+   "mean_logprob": -0.31598615461775303,
+   "disagree": 0.5,
+   "q_fam": -4.042263371016768,
+   "samples": [
+    "The Berlin Wall Fall, which took place in 1989, marked the end of the Cold War and the division of Germany into East and West Germany",
+    "The Berlin Wall Falled in 1989",
+    "The Berlin Wall fell in 1989."
+   ]
+  },
+  {
+   "q": "What is the chemical symbol for sodium?",
+   "gold": "Na",
+   "out": "The chemical symbol for sodium is Na.",
+   "correct": true,
+   "min_prob": 0.831058919429779,
+   "mean_logprob": -0.04213696000354632,
+   "disagree": 0.0,
+   "q_fam": -4.050259442699863,
+   "samples": [
+    "The chemical symbol for sodium is Na.",
+    "The chemical symbol for sodium is Na.",
+    "The chemical symbol for sodium is Na."
+   ]
+  },
+  {
+   "q": "What is the capital of Australia?",
+   "gold": "Canberra",
+   "out": "The capital of Australia is Canberra.",
+   "correct": true,
+   "min_prob": 0.6718840599060059,
+   "mean_logprob": -0.09123967060326939,
+   "disagree": 0.0,
+   "q_fam": -3.9905131259635676,
+   "samples": [
+    "The capital of Australia is Canberra.",
+    "The capital of Australia is Canberra.",
+    "The capital of Australia is Canberra."
+   ]
+  },
+  {
+   "q": "How many sides does a hexagon have?",
+   "gold": "6",
+   "out": "A hexagon has 6 sides.",
+   "correct": true,
+   "min_prob": 0.6813356876373291,
+   "mean_logprob": -0.15747050489568953,
+   "disagree": 0.5,
+   "q_fam": -3.8929505985005077,
+   "samples": [
+    "A hexagon has 6 sides.",
+    "The hexagon has 6 sides, each of which is a line segment.",
+    "A hexagon has 6 sides, each of which is a straight line."
+   ]
+  },
+  {
+   "q": "What force pulls objects toward Earth?",
+   "gold": "gravity",
+   "out": "The force that pulls objects toward Earth is gravity.",
+   "correct": true,
+   "min_prob": 0.3812987804412842,
+   "mean_logprob": -0.3098078665778237,
+   "disagree": 0.75,
+   "q_fam": -4.4459589083673805,
+   "samples": [
+    "The Earth's gravitational force is the primary force pulling objects toward its surface.",
+    "The force that pulls objects toward Earth is gravitational force.",
+    "The force responsible for pulling objects toward Earth is gravity."
+   ]
+  },
+  {
+   "q": "What is the boiling point of water in Celsius?",
+   "gold": "100",
+   "out": "The boiling point of water in Celsius is approximately 100.0 degrees Celsius.",
+   "correct": true,
+   "min_prob": 0.5074045062065125,
+   "mean_logprob": -0.17745865408562805,
+   "disagree": 0.5,
+   "q_fam": -3.8521413008771663,
+   "samples": [
+    "The boiling point of water in Celsius is approximately 100.0 degrees Celsius",
+    "The boiling point of water in Celsius is approximately 100.0\u00b0C",
+    "The boiling point of water in Celsius is approximately 100.0\u00b0C."
+   ]
+  },
+  {
+   "q": "What is the capital of Canada?",
+   "gold": "Ottawa",
+   "out": "The capital of Canada is Ottawa.",
+   "correct": true,
+   "min_prob": 0.6772527098655701,
+   "mean_logprob": -0.11713603105731885,
+   "disagree": 0.0,
+   "q_fam": -3.9957005273529753,
+   "samples": [
+    "The capital of Canada is Ottawa.",
+    "The capital of Canada is Ottawa.",
+    "The capital of Canada is Ottawa."
+   ]
+  },
+  {
+   "q": "What is 15 times 4?",
+   "gold": "60",
+   "out": "15 times 4 is 60.",
+   "correct": true,
+   "min_prob": 0.4039662778377533,
+   "mean_logprob": -0.23280677427847074,
+   "disagree": 0.5,
+   "q_fam": -3.9881998332761195,
+   "samples": [
+    "15 times 4 equals 60.",
+    "15 times 4 is 60.",
+    "15 times 4 equals 60."
+   ]
+  },
+  {
+   "q": "Which element has atomic number 1?",
+   "gold": "hydrogen",
+   "out": "The element with the atomic number 1 is hydrogen.",
+   "correct": true,
+   "min_prob": 0.09429296106100082,
+   "mean_logprob": -0.4633713854127737,
+   "disagree": 0.5,
+   "q_fam": -4.2273726536511225,
+   "samples": [
+    "The element with the atomic number 1 is 'Hydrogen'.",
+    "One of the most fascinating elements on Earth is carbon, with a total of 60 atoms of carbon with a total number of atoms of 60.",
+    "The element with atomic number 1 is a singleton element, meaning it has no other elements in its periodic table."
+   ]
+  },
+  {
+   "q": "In which year did humans first land on the Moon?",
+   "gold": "1969",
+   "out": "The year was 1969, when astronauts Neil Armstrong and Edwin \"Buzz\" Aldrin made the historic first steps on the Moon.",
+   "correct": true,
+   "min_prob": 0.14162412285804749,
+   "mean_logprob": -0.4225466215117266,
+   "disagree": 0.75,
+   "q_fam": -4.026130250012962,
+   "samples": [
+    "The year 1969 marked the beginning of humans' first landing on the Moon, marking the beginning of the Space Age.",
+    "Humans first land on the Moon in 1969, marking the beginning of the Space Age",
+    "In 1969, humans first landed on the Moon, marking a major milestone in space exploration."
+   ]
+  },
+  {
+   "q": "What is the capital of Kazakhstan?",
+   "gold": "Astana",
+   "out": "The capital of Kazakhstan is Astana.",
+   "correct": true,
+   "min_prob": 0.18915137648582458,
+   "mean_logprob": -0.3339679808532309,
+   "disagree": 0.75,
+   "q_fam": -4.004030050085584,
+   "samples": [
+    "Kazakhstan's capital is Astana.",
+    "Kazakhstan is a country with a rich history and culture, known for its stunning natural beauty, vibrant cities, and warm hospitality.",
+    "The capital of Kazakhstan is Saraghizm."
+   ]
+  },
+  {
+   "q": "What is the chemical symbol for tungsten?",
+   "gold": "W",
+   "out": "The chemical symbol for tungsten is Tungsten.",
+   "correct": false,
+   "min_prob": 0.16761912405490875,
+   "mean_logprob": -0.26075516316168607,
+   "disagree": 0.5,
+   "q_fam": -4.20450495925348,
+   "samples": [
+    "The chemical symbol for tungsten is Teal.",
+    "The chemical symbol for tungsten is Ta.",
+    "The chemical symbol for tungsten is Tungsten."
+   ]
+  },
+  {
+   "q": "How many players are on a baseball team on the field?",
+   "gold": "9",
+   "out": "On a baseball team, there are 12 players on the field.",
+   "correct": false,
+   "min_prob": 0.2991529703140259,
+   "mean_logprob": -0.5146779224433548,
+   "disagree": 0.5,
+   "q_fam": -4.120659306595923,
+   "samples": [
+    "On a baseball team, there are typically 11 players on the field.",
+    "The baseball team has 10 players on the field.",
+    "The baseball team has 10 players on the field."
+   ]
+  },
+  {
+   "q": "What is the deepest trench in the ocean called?",
+   "gold": "Mariana Trench",
+   "out": "The deepest trench in the ocean is called the Challenger Deep.",
+   "correct": false,
+   "min_prob": 0.4434351325035095,
+   "mean_logprob": -0.2115723019675313,
+   "disagree": 0.75,
+   "q_fam": -4.044853355652453,
+   "samples": [
+    "The deepest trench in the ocean is called the Challenger Deep in the Mariana Trench.",
+    "The deepest trench in the ocean is the Challenger Deep.",
+    "The deepest trench in the ocean is known as the Challenger Deep."
+   ]
+  },
+  {
+   "q": "What year was the telephone patented by Bell?",
+   "gold": "1876",
+   "out": "The telephone was patented by Alexander Graham Bell in 1876.",
+   "correct": true,
+   "min_prob": 0.58344966173172,
+   "mean_logprob": -0.12678186215248696,
+   "disagree": 0.0,
+   "q_fam": -4.3271306151829405,
+   "samples": [
+    "The telephone was patented by Alexander Graham Bell in 1876.",
+    "The telephone was patented by Alexander Graham Bell in 1876.",
+    "The telephone was patented by Alexander Graham Bell in 1876."
+   ]
+  },
+  {
+   "q": "What is the molar mass of water in g per mol?",
+   "gold": "18",
+   "out": "The molar mass of water in g/mol is 18.025.",
+   "correct": true,
+   "min_prob": 0.218574658036232,
+   "mean_logprob": -0.31488761160582096,
+   "disagree": 0.75,
+   "q_fam": -4.025619861974553,
+   "samples": [
+    "The molar mass of water is approximately 18.016 g/mol",
+    "The molar mass of water is 18.012 g/mol",
+    "The molar mass of water is 18.025 g/mol."
+   ]
+  },
+  {
+   "q": "What is the capital of Burkina Faso?",
+   "gold": "Ouagadougou",
+   "out": "The capital of Burkina Faso is Kourou.",
+   "correct": false,
+   "min_prob": 0.1182062029838562,
+   "mean_logprob": -0.5022752904647261,
+   "disagree": 0.75,
+   "q_fam": -3.7679426381548082,
+   "samples": [
+    "The capital of Burkina Faso is Lom\u00e9.",
+    "The capital of Burkina Faso is Yamoussoukou.",
+    "The capital of Burkina Faso is Port-au-Prince."
+   ]
+  },
+  {
+   "q": "What does DNA stand for?",
+   "gold": "deoxyribonucleic acid",
+   "out": "DNA stands for Deoxyribonucleic acid.",
+   "correct": true,
+   "min_prob": 0.5007524490356445,
+   "mean_logprob": -0.1686184094197015,
+   "disagree": 0.0,
+   "q_fam": -4.212298622888566,
+   "samples": [
+    "DNA stands for Deoxyribonucleic Acid.",
+    "DNA stands for Deoxyribonucleic Acid.",
+    "DNA stands for Deoxyribonucleic acid."
+   ]
+  },
+  {
+   "q": "How many teeth does an adult human usually have?",
+   "gold": "32",
+   "out": "The average adult human has 20 teeth, with the majority of teeth being in the back of the mouth.",
+   "correct": false,
+   "min_prob": 0.11429691314697266,
+   "mean_logprob": -0.748427216037046,
+   "disagree": 0.75,
+   "q_fam": -4.105625417030918,
+   "samples": [
+    "A human typically has 20 teeth, which includes a central incisor, four canines, and 40 molars.",
+    "An adult human usually has 20 teeth.",
+    "The human adult usually has 20 teeth."
+   ]
+  },
+  {
+   "q": "What is the currency of Switzerland?",
+   "gold": "franc",
+   "out": "The currency of Switzerland is the Swiss franc.",
+   "correct": true,
+   "min_prob": 0.6309128999710083,
+   "mean_logprob": -0.16214282750662776,
+   "disagree": 0.25,
+   "q_fam": -4.096075976970356,
+   "samples": [
+    "The currency of Switzerland is the Swiss franc.",
+    "The currency of Switzerland is the Swiss Franc.",
+    "Switzerland's currency is the Swiss franc."
+   ]
+  },
+  {
+   "q": "What is 17 times 19?",
+   "gold": "323",
+   "out": "17 times 19 is 319",
+   "correct": false,
+   "min_prob": 0.14813140034675598,
+   "mean_logprob": -0.6171378152246795,
+   "disagree": 0.75,
+   "q_fam": -3.9436806968704685,
+   "samples": [
+    "17 times 19 is a classic problem that can be solved using the concept of multiplication and the concept of base 10.",
+    "17 times 19 is a tricky calculation but can be solved using a combination of multiplication and division.",
+    "17 times 19 is 272."
+   ]
+  },
+  {
+   "q": "Which country has the largest population in Africa?",
+   "gold": "Nigeria",
+   "out": "The largest population in Africa is in South Africa, with a population of approximately 241 million people.",
+   "correct": false,
+   "min_prob": 0.1360282450914383,
+   "mean_logprob": -0.6992712867855083,
+   "disagree": 0.75,
+   "q_fam": -4.040885715115213,
+   "samples": [
+    "The largest population in Africa is in the Democratic Republic of the Congo, with a total population of approximately 110 million.",
+    "The largest population in Africa is in Africa itself, with countries like Ethiopia, Morocco, and South Africa making up the largest populations.",
+    "The largest population in Africa is predominantly in sub-Saharan Africa, with the majority residing in sub-Saharan countries such as Nigeria, Ghana, and South Africa."
+   ]
+  },
+  {
+   "q": "What is the speed of light in km per second?",
+   "gold": "300000",
+   "out": "The speed of light in km/s is approximately 299,792,458 meters per second.",
+   "correct": false,
+   "min_prob": 0.4896399676799774,
+   "mean_logprob": -0.12477865814358163,
+   "disagree": 0.5,
+   "q_fam": -3.906859400050443,
+   "samples": [
+    "The speed of light in kilometers per second is approximately 299,792,458 meters per second.",
+    "The speed of light in km/s is approximately 299,792,458 meters per second.",
+    "The speed of light in km per second is approximately 299,792,458 meters per second."
+   ]
+  },
+  {
+   "q": "What element is liquid at room temperature besides mercury?",
+   "gold": "bromine",
+   "out": "The element that is liquid at room temperature besides mercury is hydrogen.",
+   "correct": false,
+   "min_prob": 0.06099729239940643,
+   "mean_logprob": -0.5524700998590599,
+   "disagree": 0.75,
+   "q_fam": -4.271835948806701,
+   "samples": [
+    "The element that is liquid at room temperature besides mercury is typically a transition metal, specifically a transition metal that is less dense than air.",
+    "The element that is liquid at room temperature besides mercury is often referred to as a liquid metal or a liquid crystal.",
+    "In a few words, the element is typically liquid at room temperature besides mercury."
+   ]
+  },
+  {
+   "q": "In which city is the Hermitage Museum?",
+   "gold": "Saint Petersburg",
+   "out": "The Hermitage Museum is located in the city of St. Petersburg, Russia.",
+   "correct": false,
+   "min_prob": 0.06835559010505676,
+   "mean_logprob": -0.4612664788651942,
+   "disagree": 0.75,
+   "q_fam": -4.215902964402139,
+   "samples": [
+    "The Hermitage Museum is located in St. Petersburg, Russia.",
+    "In the Hermitage Museum in Edinburgh, Scotland.",
+    "The Hermitage Museum is located in Paris, France, a city renowned for its rich history and cultural heritage."
+   ]
+  },
+  {
+   "q": "What is the pH of pure water?",
+   "gold": "7",
+   "out": "The pH of pure water is approximately 7.0.",
+   "correct": true,
+   "min_prob": 0.2515525221824646,
+   "mean_logprob": -0.3600294901572214,
+   "disagree": 0.75,
+   "q_fam": -4.036893779185263,
+   "samples": [
+    "The pH of pure water can be determined by using a pH meter. Pure water typically has a pH of 7.0, which is neutral.",
+    "The pH of pure water is neutral, with a value of 7.",
+    "The pH of pure water is around 7.0, indicating it's neutral."
+   ]
+  }
+ ]
+}

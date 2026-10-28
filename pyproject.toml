@@ -1,0 +1,10 @@
+[project]
+name = "rox-n"
+version = "0.2.0"
+description = "Surprise-gated neuromorphic architecture for real-time edge signal intelligence"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.0", "numpy>=1.24", "matplotlib>=3.7"]
+optional-dependencies = { mitbih = ["wfdb>=4.1"], export = ["onnx>=1.14", "onnxruntime>=1.16"], lm = ["transformers>=4.40", "safetensors>=0.4"] }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

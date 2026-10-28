@@ -1,0 +1,95 @@
+{
+ "target_tokens": 100000000000.0,
+ "mix": {
+  "web": 0.3,
+  "code": 0.3,
+  "math": 0.12,
+  "conversation": 0.18,
+  "instruction": 0.1
+ },
+ "kinds": {
+  "conversation": 8935743408.0,
+  "web": 36627358229.0,
+  "code": 0.0,
+  "instruction": 0.0,
+  "math": 8000000000.0
+ },
+ "plan": {
+  "web": {
+   "want_tokens": 30000000000.0,
+   "have_tokens": 36627358229.0,
+   "repeat": 0.82,
+   "short": false
+  },
+  "code": {
+   "want_tokens": 30000000000.0,
+   "have_tokens": 0.0,
+   "repeat": null,
+   "short": true
+  },
+  "math": {
+   "want_tokens": 12000000000.0,
+   "have_tokens": 8000000000.0,
+   "repeat": 1.5,
+   "short": true
+  },
+  "conversation": {
+   "want_tokens": 18000000000.0,
+   "have_tokens": 8935743408.5,
+   "repeat": 2.01,
+   "short": true
+  },
+  "instruction": {
+   "want_tokens": 10000000000.0,
+   "have_tokens": 0.0,
+   "repeat": null,
+   "short": true
+  }
+ },
+ "sources": {
+  "corpus": {
+   "bytes": 21964976092,
+   "files": 42,
+   "est_tokens": 5491244023.0,
+   "kind": "conversation"
+  },
+  "large_raw": {
+   "bytes": 46509432916,
+   "files": 12,
+   "est_tokens": 11627358229.0,
+   "kind": "web"
+  },
+  "fresh": {
+   "bytes": 13777997542,
+   "files": 19,
+   "est_tokens": 3444499385.5,
+   "kind": "conversation"
+  },
+  "code": {
+   "bytes": 0,
+   "files": 0,
+   "est_tokens": 0.0,
+   "kind": "code"
+  },
+  "instr": {
+   "bytes": 0,
+   "files": 0,
+   "est_tokens": 0.0,
+   "kind": "instruction"
+  },
+  "fineweb_edu": {
+   "bytes": null,
+   "files": null,
+   "est_tokens": 25000000000.0,
+   "kind": "web",
+   "remote": true
+  },
+  "finemath": {
+   "bytes": null,
+   "files": null,
+   "est_tokens": 8000000000.0,
+   "kind": "math",
+   "remote": true
+  }
+ }
+}

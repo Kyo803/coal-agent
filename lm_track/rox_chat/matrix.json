@@ -1,0 +1,24 @@
+{
+ "rows": {
+  "rope/aux=0.01": {
+   "val": 2.442,
+   "min_expert": 0.1387
+  },
+  "rope/aux=0.0": {
+   "val": 2.446,
+   "min_expert": 0.0
+  },
+  "plhe/aux=0.01": {
+   "val": 2.441,
+   "min_expert": 0.0957
+  },
+  "plhe/aux=0.0": {
+   "val": 2.425,
+   "min_expert": 0.0
+  }
+ },
+ "quarantine": [
+  "rope/aux=0.0",
+  "plhe/aux=0.0"
+ ]
+}

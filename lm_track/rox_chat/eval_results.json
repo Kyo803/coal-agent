@@ -1,0 +1,52 @@
+{
+ "scale": "quick",
+ "config": {
+  "arith": 500,
+  "safety": 500,
+  "retr": 200,
+  "fact": 200,
+  "tool": 500,
+  "mem": 100,
+  "llm": 30
+ },
+ "started": 1790619790.3635483,
+ "arithmetic": {
+  "acc": 1.0,
+  "n": 500,
+  "failures": []
+ },
+ "safety": {
+  "acc": 1.0,
+  "n": 500,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "tp": 234,
+  "fp": 0,
+  "fn": 0,
+  "tn": 266,
+  "failures": []
+ },
+ "retrieval": {
+  "acc": 1.0,
+  "n": 200,
+  "failures": []
+ },
+ "fact_extraction": {
+  "acc": 1.0,
+  "n": 600,
+  "failures": []
+ },
+ "tool_routing": {
+  "acc": 1.0,
+  "n": 500,
+  "failures": []
+ },
+ "memory": {
+  "acc": 1.0,
+  "n": 100,
+  "failures": []
+ },
+ "wall_seconds": 1280.9,
+ "total_cases": 2400
+}

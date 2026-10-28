@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROX N — live demo</title>
+<style>
+  :root { color-scheme: dark; }
+  body { background: #0b0e12; color: #e8eef4; font-family: Consolas, monospace; margin: 0; padding: 16px 20px; }
+  h1 { font-size: 22px; margin: 0 0 2px; letter-spacing: 2px; }
+  .sub { color: #8fa3b5; font-size: 13px; margin-bottom: 12px; }
+  .nums { display: flex; gap: 28px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .num .v { font-size: 44px; font-weight: bold; line-height: 1; }
+  .num .k { font-size: 12px; color: #8fa3b5; margin-top: 4px; }
+  .good { color: #4ade80; } .warn { color: #fbbf24; } .bad { color: #f87171; } .dim { color: #8fa3b5; }
+  canvas { width: 100%; height: 150px; background: #11161c; border: 1px solid #243040; display: block; margin-bottom: 12px; }
+  .row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  #grid { display: grid; grid-template-columns: repeat(16, 26px); gap: 4px; }
+  #grid div { width: 26px; height: 26px; background: #1a2230; border: 1px solid #2b3a4f; }
+  #grid div.on { background: #4ade80; border-color: #4ade80; }
+  .pill { padding: 4px 12px; border: 1px solid #2b3a4f; font-size: 14px; }
+  button { font-family: inherit; font-size: 20px; padding: 12px 28px; background: #b91c1c; color: #fff;
+           border: none; cursor: pointer; letter-spacing: 1px; }
+  button:active { transform: scale(0.97); }
+  .exp { display: flex; gap: 6px; }
+  .exp div { width: 44px; height: 30px; line-height: 30px; text-align: center; background: #1a2230; border: 1px solid #2b3a4f; }
+  .exp div.on { background: #38bdf8; border-color: #38bdf8; color: #04121f; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>ROX N — LIVE</h1>
+<div class="sub" id="src">connecting…</div>
+<div class="nums">
+  <div class="num"><div class="v good" id="n_saved">–</div><div class="k">FLOPs SAVED vs dense</div></div>
+  <div class="num"><div class="v" id="n_rox">–</div><div class="k">ROX ms / step</div></div>
+  <div class="num"><div class="v dim" id="n_den">–</div><div class="k">DENSE ms / step</div></div>
+  <div class="num"><div class="v" id="n_f1">–</div><div class="k">F1 ROX / DENSE</div></div>
+</div>
+<canvas id="c_sig" width="1200" height="150"></canvas>
+<canvas id="c_sur" width="1200" height="150"></canvas>
+<div class="row">
+  <div><div class="k dim" style="font-size:12px;margin-bottom:4px">FOU UNITS (green = fired this step)</div><div id="grid"></div></div>
+  <div><div class="dim" style="font-size:12px;margin-bottom:4px">EXPERTS</div><div class="exp" id="exp"></div></div>
+  <div class="pill" id="p_eme">EME …</div>
+  <div class="pill" id="p_plhe">PLHE …</div>
+  <button id="b_inj" onclick="inject()">⚡ INJECT ANOMALY</button>
+  <div class="pill" id="p_inj">injected: 0</div>
+</div>
+<script>
+const grid = document.getElementById('grid');
+for (let i = 0; i < 32; i++) grid.appendChild(document.createElement('div'));
+const expBox = document.getElementById('exp');
+for (let i = 0; i < 4; i++) { const d = document.createElement('div'); d.textContent = i; expBox.appendChild(d); }
+
+function trace(cv, data, lbl, opts) {
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  if (!data.length) return;
+  let mn = Math.min(...data), mx = Math.max(...data);
+  if (opts && opts.floor !== undefined) mn = Math.min(mn, opts.floor);
+  if (mx - mn < 1e-6) mx = mn + 1;
+  const X = i => i / (data.length - 1) * W, Y = v => H - (v - mn) / (mx - mn) * (H - 14) - 7;
+  // anomaly shading
+  ctx.fillStyle = 'rgba(248,113,113,0.22)';
+  let run = -1;
+  for (let i = 0; i < lbl.length; i++) {
+    if (lbl[i] && run < 0) run = i;
+    if ((!lbl[i] || i === lbl.length - 1) && run >= 0) { ctx.fillRect(X(run), 0, X(i) - X(run), H); run = -1; }
+  }
+  if (opts && opts.thr !== undefined) {
+    ctx.strokeStyle = '#fbbf24'; ctx.setLineDash([6, 4]); ctx.beginPath();
+    ctx.moveTo(0, Y(opts.thr)); ctx.lineTo(W, Y(opts.thr)); ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.strokeStyle = opts.color; ctx.lineWidth = 1.5; ctx.beginPath();
+  data.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(0), Y(v)));
+  ctx.stroke();
+  ctx.fillStyle = '#8fa3b5'; ctx.font = '12px Consolas'; ctx.fillText(opts.name, 8, 16);
+}
+
+async function inject() {
+  await fetch('/api/inject', {method: 'POST'});
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/state');
+    const s = await r.json();
+    document.getElementById('src').textContent =
+      'source ' + s.source + ' · step ' + s.steps + ' · shared surprise thr ' + s.threshold;
+    document.getElementById('n_saved').textContent = (s.flops_saved * 100).toFixed(1) + '%';
+    document.getElementById('n_rox').textContent = s.ms_rox_mean.toFixed(2);
+    document.getElementById('n_den').textContent = s.ms_den_mean.toFixed(2);
+    document.getElementById('n_f1').textContent = s.f1_rox.toFixed(2) + ' / ' + s.f1_den.toFixed(2);
+    trace(document.getElementById('c_sig'), s.sig, s.lbl, {color: '#38bdf8', name: 'ECG (window centre, red = anomaly)'});
+    trace(document.getElementById('c_sur'), s.sur, s.lbl, {color: '#4ade80', name: 'SHARED SURPRISE S (yellow = gate threshold)', thr: s.threshold, floor: 0});
+    const cells = grid.children;
+    for (let i = 0; i < cells.length; i++) cells[i].className = s.cells[i] ? 'on' : '';
+    const ex = expBox.children;
+    for (let i = 0; i < ex.length; i++) ex[i].className = (i === s.expert) ? 'on' : '';
+    const pe = document.getElementById('p_eme');
+    pe.textContent = s.reeval ? 'EME RE-EVAL (all experts)' : 'EME ECHO expert ' + s.expert;
+    pe.style.color = s.reeval ? '#fbbf24' : '#4ade80';
+    const pp = document.getElementById('p_plhe');
+    pp.textContent = s.plhe_est ? 'PLHE RE-LOCK' : 'PLHE HOLD';
+    pp.style.color = s.plhe_est ? '#fbbf24' : '#8fa3b5';
+    document.getElementById('p_inj').textContent = 'injected: ' + s.injected_total;
+  } catch (e) { /* server restarting */ }
+}
+setInterval(poll, 300); poll();
+</script>
+</body>
+</html>

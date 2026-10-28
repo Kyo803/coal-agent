@@ -1,0 +1,40 @@
+# --- model weights and training data (multi-GB, never in git) -------------
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.gguf
+*.bin
+*.pkl
+*.npy
+*.npz
+lm_track/mini_chat/
+lm_track/from_scratch/tinystories.pt
+lm_track/rox_chat/bigindex/
+lm_track/rox_chat/dpo_prefs.jsonl
+lm_track/rox_chat/rox_brain/
+lm_track/rox_chat/rox_chat/
+lm_track/rox_chat/rox_online_dpo/
+lm_track/rox_chat/rox_kto/
+lm_track/rox_chat/rox_orpo/
+
+# --- generated work products ---------------------------------------------
+.rox/
+*.vcd
+*.out
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# --- OS / editor ----------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/

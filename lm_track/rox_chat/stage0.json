@@ -1,0 +1,98 @@
+{
+ "hist": {
+  "rope": [
+   {
+    "step": 1,
+    "loss": 5.654,
+    "val": 5.429,
+    "min_expert": 0.0078
+   },
+   {
+    "step": 100,
+    "loss": 2.721,
+    "val": 2.536,
+    "min_expert": 0.0
+   },
+   {
+    "step": 200,
+    "loss": 2.373,
+    "val": 2.533,
+    "min_expert": 0.0312
+   },
+   {
+    "step": 300,
+    "loss": 2.289,
+    "val": 2.165,
+    "min_expert": 0.1074
+   },
+   {
+    "step": 400,
+    "loss": 2.22,
+    "val": 2.369,
+    "min_expert": 0.0957
+   },
+   {
+    "step": 500,
+    "loss": 2.2,
+    "val": 2.192,
+    "min_expert": 0.1328
+   },
+   {
+    "step": 600,
+    "loss": 2.026,
+    "val": 2.04,
+    "min_expert": 0.1289
+   }
+  ],
+  "plhe": [
+   {
+    "step": 1,
+    "loss": 5.665,
+    "val": 5.405,
+    "min_expert": 0.0
+   },
+   {
+    "step": 100,
+    "loss": 2.658,
+    "val": 2.487,
+    "min_expert": 0.084
+   },
+   {
+    "step": 200,
+    "loss": 2.355,
+    "val": 2.503,
+    "min_expert": 0.0469
+   },
+   {
+    "step": 300,
+    "loss": 2.289,
+    "val": 2.163,
+    "min_expert": 0.1055
+   },
+   {
+    "step": 400,
+    "loss": 2.23,
+    "val": 2.39,
+    "min_expert": 0.0859
+   },
+   {
+    "step": 500,
+    "loss": 2.25,
+    "val": 2.252,
+    "min_expert": 0.1191
+   },
+   {
+    "step": 600,
+    "loss": 2.168,
+    "val": 2.179,
+    "min_expert": 0.0938
+   }
+  ]
+ },
+ "verdict": {
+  "rope_trains": true,
+  "no_collapse": true,
+  "plhe_kept": true,
+  "PASS": true
+ }
+}

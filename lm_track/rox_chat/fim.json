@@ -1,0 +1,45 @@
+{
+ "conflict_scores": {
+  "lm_bal": -0.0188,
+  "lm_sp": -0.0031,
+  "bal_sp": -0.0459
+ },
+ "min_group": {
+  "lm_bal": {
+   "min_cos": -0.9513,
+   "where": "blocks.3.ffn.gate.weight"
+  },
+  "lm_sp": {
+   "min_cos": -0.9645,
+   "where": "blocks.1.ffn.gate.weight"
+  },
+  "bal_sp": {
+   "min_cos": -0.6584,
+   "where": "blocks.1.ffn.gate.weight"
+  }
+ },
+ "conflict_thr": -0.2,
+ "conflicts": {},
+ "group_conflicts": {
+  "lm_bal": {
+   "min_cos": -0.9513,
+   "where": "blocks.3.ffn.gate.weight"
+  },
+  "lm_sp": {
+   "min_cos": -0.9645,
+   "where": "blocks.1.ffn.gate.weight"
+  },
+  "bal_sp": {
+   "min_cos": -0.6584,
+   "where": "blocks.1.ffn.gate.weight"
+  }
+ },
+ "fim_seconds": 10.1,
+ "full_matrix_seconds": 165.9,
+ "speedup": 16.4,
+ "matrix_quarantine": [
+  "rope/aux=0.0",
+  "plhe/aux=0.0"
+ ],
+ "verdict": "Tension localized at router gate weights (LM loss vs balance aux, expected MoE tension) AND matrix quarantines no-aux cells: aux is necessary AND fights for it \u2014 keep aux, governor stays mandatory."
+}
