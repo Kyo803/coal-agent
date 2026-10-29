@@ -10,6 +10,7 @@ freezing for 40 seconds.
 Returns the full text plus any tool calls (OpenAI-normalized).
 """
 import json
+import os
 import urllib.request
 
 from rox_config import cfg
@@ -27,7 +28,7 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
       a specific tool call (intent-first path).
     """
     base = (base_url or cfg.base_url).rstrip("/")
-    model = model or "local-model"
+    model = (model or os.environ.get("ROX_AGENT_MODEL") or "local-model")
     thinking = cfg.model.thinking if thinking is None else thinking
     payload = {
         "model": model,
@@ -37,16 +38,26 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
         else temperature,
         "max_tokens": cfg.model.max_tokens if max_tokens is None
         else max_tokens,
-        "chat_template_kwargs": {"enable_thinking": bool(thinking)},
     }
+    local = ("localhost" in base) or ("127.0.0.1" in base)
+    key = "" if local else os.environ.get("NEBIUS_API_KEY", "")
+    if key:
+        # Nemotron-3 is a reasoning model: without this the hidden trace eats
+        # the whole token budget and content comes back empty.
+        payload["reasoning_effort"] = os.environ.get("ROX_REASONING", "none")
+    else:
+        payload["chat_template_kwargs"] = {"enable_thinking": bool(thinking)}
     if tools:
         payload["tools"] = tools
         payload["tool_choice"] = tool_choice or "auto"
 
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["Authorization"] = "Bearer " + key
     req = urllib.request.Request(
         base + "/chat/completions",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}, method="POST")
+        headers=headers, method="POST")
 
     content, tool_calls, reasoning = "", [], ""
     in_think, buf = False, ""

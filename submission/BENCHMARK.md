@@ -96,6 +96,37 @@ Raw report: `~/.rox/work/nemotron_rtl/QWEN_7B_RTL.md`.
 
 ---
 
+## Benchmark 4 — six novel designs (not in the catalogue)
+
+To check the model is not just memorising the catalogue, six designs that are
+not in it at all were run the same way: spec + exact ports, RTL only,
+independent reference-model testbench, full gate.
+
+**6 / 6 passed, every one first try, zero repairs.**
+
+| design | what it does | result |
+|---|---|---|
+| `bin2gray4` | 4-bit binary to Gray | PASS, 0 repairs |
+| `popcount6` | count 1 bits in 6 bits | PASS, 0 repairs |
+| `min3_4bit` | minimum of three 4-bit values | PASS, 0 repairs |
+| `majority3` | 3-input majority voter | PASS, 0 repairs |
+| `thermometer3to7` | 3-to-7 thermometer decode | PASS, 0 repairs |
+| `palindrome8` | 8-bit bit-palindrome detector | PASS, 0 repairs |
+
+These six are combinational. The ten in benchmarks 2–3 are sequential and
+harder, which is where the 2–5/10 comes from. Stated together so the contrast
+is not hidden: **Nemotron is reliable on straightforward combinational logic
+and still error-prone on stateful designs.**
+
+One fix made the difference on first-try passes: the system prompt now
+requires ANSI-style ports (`output reg [3:0] b` inline) instead of declaring
+the output and a separate `reg` with the same name, which the model kept doing
+and which is a compile error.
+
+Reproduce: `py -3.15 test_nemotron_novel.py` (needs `NEBIUS_API_KEY`).
+
+---
+
 ## What this is evidence for
 
 The architecture is not "the model is good". It is **"the model proposes, the

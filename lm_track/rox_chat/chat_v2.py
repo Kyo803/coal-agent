@@ -34,11 +34,19 @@ class RoxV2:
         self.qwen = None
         if backend == "qwen":
             from qwen_backend import QwenBackend
+            url = (qwen_url or os.environ.get("ROX_AGENT_URL")
+                   or "http://localhost:1234/v1")
+            local = ("localhost" in url) or ("127.0.0.1" in url)
+            key = (""
+                   if local else os.environ.get("NEBIUS_API_KEY", ""))
+            mdl = (qwen_model or os.environ.get("ROX_AGENT_MODEL")
+                   or ("qwen3.6-35b-a3b" if local
+                       else "nvidia/nemotron-3-super-120b-a12b"))
             self.qwen = QwenBackend(
-                base_url=qwen_url or "http://localhost:1234/v1",
-                model=qwen_model or "qwen3.6-35b-a3b")
+                base_url=url, model=mdl, api_key=key,
+                reasoning_effort=None if local else "none")
             if not self.qwen.health():
-                print("[chat_v2] WARNING: LM Studio server not reachable at "
+                print("[chat_v2] WARNING: model server not reachable at "
                       f"{self.qwen.base_url} — start it to chat.")
         elif backend == "v2" and model_path and os.path.exists(model_path):
             from local_run import load_model

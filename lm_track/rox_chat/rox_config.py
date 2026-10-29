@@ -176,6 +176,10 @@ class Config(_Section):
     # ---- helpers ----
     @property
     def base_url(self):
+        # explicit override (e.g. a hosted OpenAI-compatible endpoint)
+        env = os.environ.get("ROX_BASE_URL")
+        if env:
+            return env.rstrip("/")
         return f"http://{self.model.host}:{self.model.port}/v1"
 
     @property

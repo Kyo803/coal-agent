@@ -93,24 +93,36 @@ MEMORY_TOOL_SCHEMAS = [
 
 class QwenBackend:
     def __init__(self, base_url=DEFAULT_URL, model=DEFAULT_MODEL,
-                 temperature=0.7, max_tokens=768, timeout=120):
+                 temperature=0.7, max_tokens=768, timeout=120,
+                 api_key=None, reasoning_effort=None):
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout
+        self.api_key = api_key or ""
+        # e.g. "none" for Nemotron-3, whose hidden reasoning trace would
+        # otherwise consume the whole token budget before any answer
+        self.reasoning_effort = reasoning_effort
 
     # ---- low level ----
+    def _headers(self):
+        h = {"Content-Type": "application/json"}
+        if self.api_key:
+            h["Authorization"] = "Bearer " + self.api_key
+        return h
+
     def _post(self, path, payload):
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             self.base_url + path, data=data,
-            headers={"Content-Type": "application/json"}, method="POST")
+            headers=self._headers(), method="POST")
         with urllib.request.urlopen(req, timeout=self.timeout) as r:
             return json.loads(r.read().decode("utf-8"))
 
     def _get(self, path):
-        req = urllib.request.Request(self.base_url + path)
+        req = urllib.request.Request(self.base_url + path,
+                                     headers=self._headers())
         with urllib.request.urlopen(req, timeout=self.timeout) as r:
             return json.loads(r.read().decode("utf-8"))
 
@@ -144,7 +156,12 @@ class QwenBackend:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
         # Qwen3.6 supports thinking; disable for fast direct answers.
-        if no_think:
+        # Reasoning models (Nemotron-3) need reasoning_effort instead, or the
+        # whole budget is spent on the hidden trace and content comes back
+        # empty.
+        if self.reasoning_effort:
+            payload["reasoning_effort"] = self.reasoning_effort
+        elif no_think:
             payload["chat_template_kwargs"] = {"enable_thinking": False}
         out = self._post("/chat/completions", payload)
         msg = out["choices"][0]["message"]

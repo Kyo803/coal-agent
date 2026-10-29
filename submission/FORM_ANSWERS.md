@@ -28,22 +28,26 @@ token**. That is the sweet spot for this workload:
 
 **6 / 10.**
 
-Measured, not asserted. Ten catalogue designs, specification plus exact port
-list, the model writes the RTL only, and the testbench comes from an
-independently written Python reference model:
+Measured, not asserted. Two batteries, both with the model writing RTL only
+against an independent reference-model testbench:
 
-| measurement | result |
+| battery | result |
 |---|---|
-| one-shot, no repair | **2 / 10** pass the full gate |
-| up to 2 repairs (model shown the gate's error text) | **5 / 10** pass the full gate |
+| 10 catalogue designs (sequential, harder) — one-shot | **2 / 10** |
+| same, with up to 2 repairs | **5 / 10** |
+| 6 novel combinational designs (not in the catalogue) | **6 / 6, all first try** |
+
+That split is the honest characterisation: **reliable on straightforward
+combinational logic, still error-prone on stateful designs.** The repair loop
+is what closes much of the gap on the harder set.
 
 Why 6 and not lower: the failures are *ordinary* and *fixable* — a duplicate
 signal declaration, a wrong LFSR polynomial, a signed right-shift it got
 backwards. It is not producing nonsense; it is producing code that is wrong in
-ways a real toolchain catches. And it is genuinely better than the 7B.
+ways a real toolchain catches.
 
-Why not higher: a 50% pass rate on designs it has not seen is not a chip
-designer. It is a fast first draft.
+Why not higher: a 50% pass rate on stateful designs it has not seen is not a
+chip designer. It is a fast first draft.
 
 ## Fine-tune, prompt-engineer, or out of the box?
 
