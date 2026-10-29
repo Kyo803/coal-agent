@@ -28,26 +28,29 @@ token**. That is the sweet spot for this workload:
 
 **6 / 10.**
 
-Measured, not asserted. Two batteries, both with the model writing RTL only
+Measured, not asserted. Three batteries, all with the model writing RTL only
 against an independent reference-model testbench:
 
 | battery | result |
 |---|---|
-| 10 catalogue designs (sequential, harder) — one-shot | **2 / 10** |
+| 6 novel **combinational** designs | **6 / 6, all first try** |
+| 4 **sequential** designs with crisp specs | **3 / 4** (3 first try) |
+| 10 catalogue designs (terse specs, complex) — one-shot | **2 / 10** |
 | same, with up to 2 repairs | **5 / 10** |
-| 6 novel combinational designs (not in the catalogue) | **6 / 6, all first try** |
 
-That split is the honest characterisation: **reliable on straightforward
-combinational logic, still error-prone on stateful designs.** The repair loop
-is what closes much of the gap on the harder set.
+The spread is the honest characterisation, and it points at the real variable:
+**specification quality.** With a precise interface contract the model passes
+sequential designs 3/4 first try; with the catalogue's one-line bench specs it
+passes 2/10. The repair loop closes much of that gap.
 
 Why 6 and not lower: the failures are *ordinary* and *fixable* — a duplicate
 signal declaration, a wrong LFSR polynomial, a signed right-shift it got
-backwards. It is not producing nonsense; it is producing code that is wrong in
-ways a real toolchain catches.
+backwards, an overlapping sequence detector that never distinguished restart
+from continuation. It is not producing nonsense; it is producing code that is
+wrong in ways a real toolchain catches.
 
-Why not higher: a 50% pass rate on stateful designs it has not seen is not a
-chip designer. It is a fast first draft.
+Why not higher: even on well-specified designs it is 3/4, not 4/4, and a
+toolchain is the only reason you would trust any of it.
 
 ## Fine-tune, prompt-engineer, or out of the box?
 

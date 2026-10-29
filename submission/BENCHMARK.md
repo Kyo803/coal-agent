@@ -127,6 +127,40 @@ Reproduce: `py -3.15 test_nemotron_novel.py` (needs `NEBIUS_API_KEY`).
 
 ---
 
+## Benchmark 5 — sequential designs
+
+Six combinational wins could mean the model only handles easy wiring. Four
+**clocked, stateful** designs were run the same way (spec + ports, RTL only,
+independent reference-model testbench, full gate):
+
+| design | result |
+|---|---|
+| `upcounter4` — 4-bit counter, enable | **PASS**, 0 repairs |
+| `shiftreg4` — serial-in parallel-out shift register | **PASS**, 0 repairs |
+| `pulse_detect` — one-cycle rising-edge pulse | **PASS**, 0 repairs |
+| `seqdet101` — overlapping 101 detector | **FAIL** (2 repairs, stayed wrong) |
+
+**3 / 4**, all three passes first try.
+
+`seqdet101` is the honest failure: overlapping sequence detection needs the
+state machine to distinguish "101 then a new 1" from "restart", and the model
+never got it right. That is a real RTL bug, not a harness artefact.
+
+### So why is the catalogue only 2–5 / 10?
+
+The catalogue designs are harder in a specific way: their specifications are
+terse one-liners written for a bench, not precise interface contracts, and
+several combine generation and timing concerns. The bench designs above had
+crisp specifications.
+
+That is the useful conclusion, and it is actionable: **the model's ceiling
+depends heavily on specification quality.** A precise spec moved sequential
+pass rates from roughly 2/10 to 3/4 on these samples.
+
+Reproduce: `py -3.15 test_nemotron_seq.py` (needs `NEBIUS_API_KEY`).
+
+---
+
 ## What this is evidence for
 
 The architecture is not "the model is good". It is **"the model proposes, the
