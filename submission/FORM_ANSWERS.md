@@ -69,11 +69,20 @@ reference-model testbench, same gate.
 
 | model | one-shot | with repair |
 |---|---|---|
-| `nvidia/nemotron-3-super-120b-a12b` (Token Factory) | 2 / 10 | 5 / 10 |
-| `qwen2.5-coder:7b` (local, CPU) | *(see run)* | *(see run)* |
+| `nvidia/nemotron-3-super-120b-a12b` (Token Factory) | 2 / 10 | **5 / 10** |
+| `qwen2.5-coder:7b` (local, CPU) | 3 / 10 | 3 / 10 |
 
 The comparison is fair in the way that matters: neither model ever sees the
 testbench, and neither is graded by anything it wrote.
+
+**The interesting difference is not the raw score — it is what happens when the
+gate talks back.** The 7B gained nothing from error feedback (3 → 3). Nemotron
+gained three designs (2 → 5). Being able to read a real toolchain's error and
+act on it is a distinct capability, and it is the one this system depends on.
+
+Caveat, stated plainly: ten designs, single samples, and the models are
+stochastic even at `temperature = 0.15`. Treat this as directional, not
+statistically settled.
 
 ## Which Nebius capabilities were most valuable?
 

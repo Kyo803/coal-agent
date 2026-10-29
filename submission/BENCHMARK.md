@@ -75,6 +75,27 @@ The model is shown the gate's own error text and asked to fix its RTL.
 
 ---
 
+## Benchmark 3 — head to head, same ten designs
+
+Identical specification, identical port list, identical independent
+reference-model testbench, identical gate. Neither model ever sees the test.
+
+| model | one-shot | with up to 2 repairs | gained from repair |
+|---|---|---|---|
+| `nvidia/nemotron-3-super-120b-a12b` (Token Factory) | 2 / 10 | **5 / 10** | **+3** |
+| `qwen2.5-coder:7b` (local, CPU) | 3 / 10 | 3 / 10 | +0 |
+
+The raw one-shot scores are comparable. **The difference is what each model
+does when the gate tells it what went wrong.** The 7B could not convert error
+feedback into fixes; Nemotron converted three failures into passes.
+
+That is the capability this architecture is built to exploit: the gate is not
+just a filter, it is a feedback channel.
+
+Raw report: `~/.rox/work/nemotron_rtl/QWEN_7B_RTL.md`.
+
+---
+
 ## What this is evidence for
 
 The architecture is not "the model is good". It is **"the model proposes, the
