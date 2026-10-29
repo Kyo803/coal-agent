@@ -17,6 +17,7 @@ _browser = None
 _context = None
 _page = None
 _lock = False
+_console = []          # persistent console buffer for the current page
 
 
 def _shutdown():
@@ -62,12 +63,23 @@ def _ensure():
               "--disable-blink-features=AutomationControlled"])
     _context = _browser.new_context(viewport={"width": 1280, "height": 900})
     _page = _context.new_page()
+    # buffer console output continuously, so a click's log is not lost and
+    # browser_console_logs never has to reload the page to see it
+    try:
+        _page.on("console", lambda m: _console.append(m.text))
+        _page.on("pageerror", lambda e: _console.append(f"[pageerror] {e}"))
+    except Exception:
+        pass
     return _page
 
 
 def _nav(page, url):
     if not url:
         return
+    try:
+        _console.clear()
+    except Exception:
+        pass
     try:
         page.goto(url, wait_until="domcontentloaded", timeout=15000)
     except Exception:
@@ -269,14 +281,13 @@ def browser_console_logs(args, ctx):
     if page is None:
         return {"ok": False, "output": "playwright unavailable"}
     _nav(page, args.get("url", ""))
-    logs = []
     try:
-        page.on("console", lambda m: logs.append(m.text))
-        page.reload()
-        time.sleep(0.5)
+        # let any queued console events dispatch before reading the buffer
+        page.wait_for_timeout(50)
     except Exception:
         pass
-    return {"ok": True, "output": "\n".join(logs[-50:]) or "(no console logs)"}
+    return {"ok": True,
+            "output": "\n".join(_console[-50:]) or "(no console logs)"}
 
 
 def browser_network_requests(args, ctx):

@@ -73,7 +73,8 @@ VDP = [
     ("Zerodha", "zerodha.tech", "Indian brokerage VDP"),
     ("ZDI", "zerodayinitiative.com", "brokers + Pwn2Own"),
     ("SSD Secure Disclosure", "ssd-disclosure.com", "broker"),
-    ("Pwn2Own", "zerodayinitiative.com/pwn2own", "contest, large prizes"),
+    ("Pwn2Own (ZDI programme)", "zerodayinitiative.com/pwn2own",
+     "contest, large prizes"),
 ]
 
 # --------------------------------------------------------------------------
@@ -284,7 +285,8 @@ CONFERENCES = [
     ("RSA Conference", "rsaconference.com", "enterprise"),
     ("BSides", "securitybsides.com", "local, many cities"),
     ("OWASP Global AppSec", "owasp.org/events", "appsec"),
-    ("Pwn2Own", "zerodayinitiative.com/pwn2own", "exploit contest"),
+    ("Pwn2Own (conference)", "zerodayinitiative.com/pwn2own",
+     "exploit contest"),
     ("HITB", "conference.hitb.org", "Asia/EU"),
     ("Nullcon", "nullcon.net", "India"),
     ("TROOPERS", "troopers.de", "Germany"),
@@ -464,10 +466,12 @@ def security_kb(args, ctx):
         limit = 40
     limit = max(1, min(limit, 200))
     body = kb_search(q, kind, limit)
-    return {"ok": True, "text": body + "\n\n" + kb_counts()}
+    return {"ok": True, "output": body + "\n\n" + kb_counts(),
+            "text": body + "\n\n" + kb_counts()}
 
 
 def security_method(args, ctx):
     """Short, authorisation-first methodology for a security topic."""
     topic = (args.get("topic") or "").strip()
-    return {"ok": True, "text": kb_topic(topic)}
+    body = kb_topic(topic)
+    return {"ok": True, "output": body, "text": body}
