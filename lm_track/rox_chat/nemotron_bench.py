@@ -8,8 +8,9 @@ This is the script that produces the numbers the hackathon form asks for:
   * what Nebius/Token Factory actually did for the workflow
 
     $env:NEBIUS_API_KEY = "..."
-    py -3.15 nemotron_bench.py                 # default Nemotron 70B
-    py -3.15 nemotron_bench.py --model nvidia/nemotron-4-340b-instruct
+    py -3.15 nemotron_bench.py                 # default Nemotron-3 Super 120B
+    py -3.15 nemotron_bench.py --model nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+    py -3.15 nemotron_bench.py --model nvidia/Nemotron-3-Ultra-550b-a55b
     py -3.15 nemotron_bench.py --list          # show available model ids
 """
 from __future__ import annotations
@@ -77,7 +78,12 @@ def main():
     U.OUT = BENCH
     U.RESULTS = os.path.join(BENCH, "results.jsonl")
     U.REPORT = os.path.join(BENCH, "NEMOTRON_BENCH.md")
+    U.SPECS = specs          # <- run() reads the module-level SPECS
     os.makedirs(BENCH, exist_ok=True)
+    # start clean so an earlier partial run cannot mix into this one
+    for stale in (U.RESULTS, U.REPORT):
+        if os.path.exists(stale):
+            os.remove(stale)
 
     U.run(limit=len(specs), model=model, repairs=1, det_only=False)
 

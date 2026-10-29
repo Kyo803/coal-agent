@@ -24,7 +24,7 @@ ROX N removes the model from the trust path.
 ## How it actually works
 
 1. **Spec → design.** An LLM (Nebius Token Factory, NVIDIA-accelerated,
-   default `nvidia/llama-3.1-nemotron-70b-instruct`) proposes a design:
+   default `nvidia/nemotron-3-super-120b-a12b`) proposes a design:
    either a **graph of known-good blocks** or an RTL draft.
 2. **Spec → reference model.** A *Python model of the specification* is
    written independently. It never sees the RTL.
@@ -61,7 +61,7 @@ connection width-checked before a line of Verilog is emitted.*
 ```powershell
 # 1. hosted inference (optional — falls back to local Ollama)
 $env:NEBIUS_API_KEY = "..."        # Nebius Token Factory
-$env:ROX_NEBIUS_MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
+$env:ROX_NEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # 2. build and verify a chip
 cd ROX-N\lm_track\rox_chat
@@ -99,13 +99,18 @@ We report **44/50** because the gate refused the rest.
 ## Why Nebius × NVIDIA
 
 - The design model runs on **Nebius Token Factory** (OpenAI-compatible,
-  NVIDIA-accelerated, default `nvidia/llama-3.1-nemotron-70b-instruct`). The
+  NVIDIA-accelerated, default `nvidia/nemotron-3-super-120b-a12b`). The
   adapter is endpoint-agnostic: point `ROX_NEBIUS_URL` at an **NVIDIA NIM**
   endpoint and the same agent uses it.
 - Everything that *decides* runs locally and deterministically. No network
   dependency in the verification path — a demo cannot be derailed by Wi-Fi.
 - The architecture is a statement about AI reliability: **the model proposes,
   the tools decide.**
+- Nemotron-3 is a reasoning model, so by default we disable its reasoning
+  trace (`reasoning_effort: none`) and spend the whole token budget on the
+  Verilog. Trust comes from the gate, not from the model's chain of thought —
+  and leaving reasoning on caused the model to exhaust its budget before
+  emitting any code at all.
 
 ## Honest limits
 

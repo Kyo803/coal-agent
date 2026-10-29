@@ -26,16 +26,15 @@ LADDER = [("qwen2.5-coder:14b", 13.0), ("qwen2.5-coder:7b", 8.0)]
 NEBIUS_URL = os.environ.get("ROX_NEBIUS_URL",
                             "https://api.studio.nebius.com/v1")
 NEBIUS_KEY = os.environ.get("NEBIUS_API_KEY", "")
-# The hackathon is scored on Nemotron. 70B is the sweet spot for RTL: strong
-# enough for code, cheap enough to iterate. Override for the 340B or the Mini.
+# The hackathon is scored on Nemotron. The 120B MoE (12B active) is the
+# sweet spot for RTL: strong enough for code, cheap enough to iterate.
 NEBIUS_MODEL = os.environ.get("ROX_NEBIUS_MODEL",
-                              "nvidia/llama-3.1-nemotron-70b-instruct")
-# Other hosted Nemotron variants worth trying (check `/models` for the exact
-# ids your account can see):
+                              "nvidia/nemotron-3-super-120b-a12b")
+# Other hosted Nemotron variants on this account (verified against /models):
 NEMOTRON_VARIANTS = [
-    "nvidia/llama-3.1-nemotron-70b-instruct",
-    "nvidia/nemotron-4-340b-instruct",
-    "nvidia/Nemotron-Mini-4B-Instruct",
+    "nvidia/nemotron-3-super-120b-a12b",      # default: 120B MoE, 12B active
+    "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",   # 30B MoE, 3B active - fastest
+    "nvidia/Nemotron-3-Ultra-550b-a55b",      # 550B MoE, 55B active - best
 ]
 
 
@@ -73,6 +72,14 @@ def _chat_nebius(messages, model, temperature, num_predict, timeout) -> str:
     payload = {"model": model, "messages": messages,
                "temperature": float(temperature),
                "max_tokens": int(num_predict)}
+    # Nemotron-3 is a reasoning model: it can spend the entire token budget on
+    # its hidden reasoning trace and return empty content. For code generation
+    # we want the budget spent on the code, and our trust comes from
+    # verification rather than the model's chain of thought. Default to no
+    # reasoning; override with ROX_REASONING=low|medium|high if wanted.
+    reasoning = os.environ.get("ROX_REASONING", "none").strip().lower()
+    if reasoning:
+        payload["reasoning_effort"] = reasoning
     try:
         req = urllib.request.Request(
             NEBIUS_URL.rstrip("/") + "/chat/completions",

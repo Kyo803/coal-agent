@@ -7,7 +7,7 @@ two notches. Cut every wait longer than ~2 seconds.
 
 ```powershell
 $env:NEBIUS_API_KEY = "..."       # so the header shows nebius · nvidia/...
-$env:ROX_NEBIUS_MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
+$env:ROX_NEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 cd "C:\Users\gamel\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat"
 
 # warm the toolchain so the first build is not slow on camera
