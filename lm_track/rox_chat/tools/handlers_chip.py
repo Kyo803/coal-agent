@@ -63,7 +63,8 @@ def chip_build(args, ctx):
         import chipflow
     except Exception as e:
         return {"ok": False, "output": f"chipflow unavailable: {e}"}
-    name = args.get("name") or "chip"
+    name = args.get("name") or args.get("chip_name") or args.get("block") \
+        or "chip"
     spec = args.get("spec") or args.get("description") or ""
     kind = args.get("kind")
     params = args.get("params") or {}
