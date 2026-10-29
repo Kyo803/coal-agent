@@ -456,18 +456,49 @@ def kb_topic(topic: str = "") -> str:
 # --------------------------------------------------------------------------
 # Tool handlers
 # --------------------------------------------------------------------------
+def _infer_kind(text: str) -> str:
+    """Map free-text operation words onto a category."""
+    t = (text or "").lower()
+    for kind, words in (
+        ("platform", ("platform", "bounty site", "marketplace")),
+        ("vdp", ("vdp", "vendor", "programme", "program ", "bug bounty "
+                 "program", "disclosure")),
+        ("forum", ("forum", "community", "reddit", "discussion")),
+        ("learning", ("learn", "lab", "course", "training", "practice",
+                      "academy", "ctf")),
+        ("standard", ("standard", "owasp", "cwe", "attack", "cve", "cvss",
+                      "framework")),
+        ("tool", ("tool", "scanner", "proxy", "fuzzer", "sast")),
+        ("conference", ("conference", "convention", "def con", "black hat",
+                        "bsides")),
+    ):
+        if any(w in t for w in words):
+            return kind
+    return ""
+
+
 def security_kb(args, ctx):
     """Search bug-bounty platforms, forums, labs, standards and tools."""
-    q = (args.get("query") or "").strip()
-    kind = (args.get("kind") or "").strip()
+    # be tolerant of models that invent argument names
+    q = (args.get("query") or args.get("operation") or args.get("search")
+         or "").strip()
+    kind = (args.get("kind") or args.get("category") or "").strip().lower()
+    if kind not in ("platform", "vdp", "forum", "learning", "standard",
+                    "tool", "conference"):
+        kind = _infer_kind(kind + " " + q)
     try:
-        limit = int(args.get("limit") or 40)
+        limit = int(args.get("limit") or args.get("count")
+                    or args.get("n") or 40)
     except Exception:
         limit = 40
     limit = max(1, min(limit, 200))
     body = kb_search(q, kind, limit)
-    return {"ok": True, "output": body + "\n\n" + kb_counts(),
-            "text": body + "\n\n" + kb_counts()}
+    # a "list platforms" style query will not match any name; retry without it
+    if kind and q and ("(none)" in body or "no entry matches" in body):
+        body = kb_search("", kind, limit)
+    counts = kb_counts()
+    return {"ok": True, "output": body + "\n\n" + counts,
+            "text": body + "\n\n" + counts}
 
 
 def security_method(args, ctx):

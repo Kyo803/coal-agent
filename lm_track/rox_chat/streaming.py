@@ -28,7 +28,14 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
       a specific tool call (intent-first path).
     """
     base = (base_url or cfg.base_url).rstrip("/")
-    model = (model or os.environ.get("ROX_AGENT_MODEL") or "local-model")
+    local = ("localhost" in base) or ("127.0.0.1" in base)
+    remote_model = os.environ.get("ROX_AGENT_MODEL")
+    model = (model or remote_model or "local-model")
+    # The router returns LOCAL model names (qwen2.5:3b etc.). Against a hosted
+    # endpoint those do not exist, so the call 404s and the answer is empty.
+    # Any bare local name is replaced by the configured hosted model.
+    if not local and remote_model and "/" not in str(model):
+        model = remote_model
     thinking = cfg.model.thinking if thinking is None else thinking
     payload = {
         "model": model,
@@ -41,6 +48,12 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
     }
     local = ("localhost" in base) or ("127.0.0.1" in base)
     key = "" if local else os.environ.get("NEBIUS_API_KEY", "")
+    if os.environ.get("ROX_DEBUG"):
+        import sys as _sys
+        _sys.stderr.write(
+            f"[stream_chat] base={base} model={model} "
+            f"key={'yes' if key else 'no'} thinking={thinking}\n")
+        _sys.stderr.flush()
     if key:
         # Nemotron-3 is a reasoning model: without this the hidden trace eats
         # the whole token budget and content comes back empty.

@@ -51,6 +51,16 @@ def route(text, has_image=False, prefer_fast=False):
     big_url = cfg.base_url
     fast = (cfg.get("fallback_servers") or [None])[0]
 
+    # A hosted endpoint (ROX_BASE_URL / hosted NEBIUS endpoint) must win over
+    # the local fallback. Otherwise ROX_NO_35B=1 -- which is mandatory on a
+    # machine that cannot hold the 35B -- would pin every turn to the small
+    # local model even though a remote model is configured.
+    remote = ("localhost" not in big_url) and ("127.0.0.1" not in big_url)
+    if remote:
+        return {"kind": kind,
+                "model": os.environ.get("ROX_AGENT_MODEL") or big_model,
+                "base_url": big_url, "thinking": False}
+
     # When the big model is disabled (ROX_NO_35B=1 — it does not fit in RAM
     # beside the user's work), always use the small local fallback.
     use_fast = (prefer_fast and kind in ("simple", "chat") and fast) or \
