@@ -35,6 +35,7 @@ from . import handlers_build as BD
 from . import handlers_self as SF
 from . import handlers_board as BM
 from . import handlers_security as SEC
+from . import handlers_security_kb as SECKB
 from . import handlers_chip as CH
 from . import handlers_sandbox as SB
 from . import handlers_learning as LN
@@ -1253,6 +1254,16 @@ SPECS = [
         "Passive intel for an IP or domain: DNS/PTR, geo+ASN, HTTP "
         "headers, certificate transparency.",
         {"target": _STR}, ["target"]),
+    _mk("security_kb", "security", SECKB.security_kb,
+        "Search a curated cybersecurity reference: bug-bounty platforms, "
+        "vendor/VDP programmes, forums, learning labs, standards (OWASP/"
+        "CWE/ATT&CK), tools and conferences. kind=platform|vdp|forum|"
+        "learning|standard|tool|conference.",
+        {"query": _STR, "kind": _STR, "limit": {"type": "integer"}}),
+    _mk("security_method", "security", SECKB.security_method,
+        "Short, authorisation-first methodology for a security topic: "
+        "authorisation/scope, recon, bug_classes, reporting, code review.",
+        {"topic": _STR}),
 
     # ================================================================
     # 11f. Chip design (RTL planning / review / verification)

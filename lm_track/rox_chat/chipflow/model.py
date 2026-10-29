@@ -219,7 +219,11 @@ _SYS = (
     "same signal, and never assign the same reg from two always blocks. "
     "For purely combinational functions (comparator, ALU, mux, decoder) use "
     "`always @(*)` with blocking assignments and declare the outputs as "
-    "`reg`. Only use `always @(posedge clk)` when the specification asks for "
+    "`reg`. Use ANSI-style ports: if an output is driven from an always "
+    "block, write `output reg [W-1:0] name` IN the port list -- never declare "
+    "the same signal twice (a separate `reg name;` after an `output name` is "
+    "a compile error). Only use `always @(posedge clk)` when the "
+    "specification asks for "
     "a register/counter/state machine; there use non-blocking assignments. "
     "Reset input is active-high 'rst'. Return only the module in one "
     "```verilog code block.")
