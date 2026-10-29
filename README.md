@@ -96,6 +96,12 @@ signed-accumulator overflow), `quadrature` (a Verilog signedness bug where
 
 We report **44/50** because the gate refused the rest.
 
+[`submission/BENCHMARK.md`](submission/BENCHMARK.md) measures the hosted model
+directly: with the model writing both RTL and testbench it passed 0/6 of the
+hardest designs (four failures were broken testbenches, not broken RTL); with
+RTL alone against an independent reference-model testbench it passed 2/10
+one-shot and 5/10 with up to two repairs.
+
 ## Why Nebius × NVIDIA
 
 - The design model runs on **Nebius Token Factory** (OpenAI-compatible,
@@ -127,6 +133,7 @@ submission/
   README.md           judge-facing writeup
   ARCHITECTURE.md     the verification design in detail
   RESULTS.md          all 50 designs, verified and rejected
+  BENCHMARK.md        Nemotron measurements, including the failures
   DEMO.md             3-minute demo script
   assets/             architecture, composition graph, die map, gate schematic, 3D package,
                       plus 3:2 gallery exports in assets/gallery/
