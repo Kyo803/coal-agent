@@ -308,8 +308,9 @@ SPECS = [
     # 3. Execution + runtime (confirm)
     # ================================================================
     _mk("bash", "execution", EX.bash,
-        "Run a shell command. Per-command permissions are enforced by "
-        "the shell gate: read-only auto, elevated asks, destructive blocked.",
+        "Run a shell command on this Windows machine (cmd.exe). Unix syntax "
+        "such as 'mkdir -p', 'cat >', heredocs or '/bin/sh' fails here; use "
+        "write_file to create files instead.",
         {"command": _STR, "cwd": _STR, "timeout": {"type": "integer"}},
         ["command"]),
     _mk("shell", "execution", EX.bash,
@@ -1254,6 +1255,14 @@ SPECS = [
         "Passive intel for an IP or domain: DNS/PTR, geo+ASN, HTTP "
         "headers, certificate transparency.",
         {"target": _STR}, ["target"]),
+    _mk("binary_triage", "security", SEC.binary_triage,
+        "Triage a PE/ELF binary WITHOUT executing it: sha256, format, "
+        "sections and entropy, packing hints, capability indicators "
+        "(process injection, keylogging, crypto/extortion, persistence, "
+        "network, evasion), string indicators, and optional Intel "
+        "disassembly of one symbol (symbol=main).",
+        {"path": _STR, "symbol": _STR,
+         "disasm": {"type": "boolean"}}, ["path"], tier="confirm"),
     _mk("security_kb", "security", SECKB.security_kb,
         "Search a curated cybersecurity reference: bug-bounty platforms, "
         "vendor/VDP programmes, forums, learning labs, standards (OWASP/"
@@ -1654,7 +1663,7 @@ def categories_for_trigger(text):
     # through to the generic execution tools and try to hand-write files
     if any(k in t for k in ("chip", "verilog", "rtl", "fpga", "asic",
                             "vhdl", "systemverilog", "netlist", "synthes",
-                            "circuit", "counter", "flip-flop", "flip flop",
+                            "circuit", "flip-flop", "flip flop",
                             "lfsr", "uart", "spi ", "i2c", "gray code",
                             "bcd", "silicon", "die map", "gate level",
                             "logic design", "hardware design",
@@ -1675,7 +1684,9 @@ def categories_for_trigger(text):
                             "shellcode", "attack surface", "brute force",
                             "hash crack", "assembly", "penetration",
                             "red team", "blue team", "incident response",
-                            "binary ", "suspicious", "packed", "obfuscated",
+                            "binary analysis", "binary file",
+                            "analyze this binary", "analyse this binary",
+                            "suspicious", "packed", "obfuscated",
                             "crackme", "debugger")):
         hits.add("security")
     if any(k in t for k in ("search", "find ", "grep", "glob", "symbol",

@@ -20,7 +20,7 @@ from qwen_template import split_thinking, parse_tool_calls
 
 def stream_chat(messages, model=None, base_url=None, tools=None,
                 thinking=None, on_token=None, on_thinking=None,
-                temperature=None, max_tokens=None, timeout=600,
+                temperature=None, max_tokens=None, timeout=180,
                 tool_choice=None):
     """Stream a chat completion. Returns (content, tool_calls, thinking).
 

@@ -417,6 +417,41 @@ def needs_force(intent):
     return intent.confidence == "high"
 
 
+_WEB = re.compile(
+    r"\b(website|web ?app|web ?site|html|css|javascript|storefront|store|"
+    r"portfolio|landing page|three\.?js|react|vue|angular|app\.js|"
+    r"index\.html|frontend|ui)\b", re.I)
+_CHIP = re.compile(
+    r"\b(chip|verilog|systemverilog|vhdl|rtl|fpga|asic|netlist|synthes\w*|"
+    r"flip.?flop|lfsr|uart|spi|i2c|shift ?register|counter)\b", re.I)
+_REMEMBER = re.compile(
+    r"\b(remember|note that|keep in mind|don'?t forget|do not forget)\b",
+    re.I)
+_PROJECT = re.compile(
+    r"\b(build|create|make|scaffold)\b[^.\n]{0,40}\b(project|app|"
+    r"application|website|site|game|dashboard|portfolio|tool)\b", re.I)
+_PATH = re.compile(r"\b[A-Za-z]:[\\/]")
+
+
+def plausible_intent(tool, text):
+    """Reject a forced tool that a single stray keyword happened to trigger.
+
+    The classifier matches keywords anywhere, so 'app.js (a click counter)'
+    used to force chip_build and 'storefront ... Nile' forced remember.
+    Forcing the wrong tool is worse than letting the model choose.
+    """
+    t = text or ""
+    if tool in ("chip_build", "chip_plan", "chip_review"):
+        return bool(_CHIP.search(t)) and not _WEB.search(t)
+    if tool in ("remember", "memory_search"):
+        return bool(_REMEMBER.search(t))
+    if tool == "build_project":
+        # an explicit destination path means "write it here", not "make a
+        # new project in ROX Projects"
+        return bool(_PROJECT.search(t)) and not _PATH.search(t)
+    return True
+
+
 if __name__ == "__main__":
     for q in [
         "make a file called guard.py on my desktop that blocks SQL injection",

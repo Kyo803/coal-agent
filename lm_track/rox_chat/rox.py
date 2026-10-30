@@ -29,7 +29,7 @@ from observability import obs
 from qwen_template import split_thinking
 from tools import ToolExecutor, ExecContext, lazy_schemas, Permissions
 from tools import specs as tool_specs
-from tools.intent import detect_intent, needs_force
+from tools.intent import detect_intent, needs_force, plausible_intent
 
 try:  # make native compilers (iverilog/vvp/gtkwave/blender) discoverable
     import toolchain
@@ -1400,6 +1400,8 @@ class Rox:
             return f"{cat} tools: " + ", ".join(names)
         # general executor (fs, exec, git, web, db, system, ...)
         res = self.texec.run(name, args)
+        if res.get("policy") == "refused":
+            return res.get("output", "refused by safety policy")
         if not res.get("ok"):
             return f"tool {name} failed: {res.get('output')}"
         return res.get("output", "")
@@ -1424,8 +1426,23 @@ class Rox:
             return True
         return False
 
+    def _stream(self, messages, r, on_token, tools=None):
+        """stream_chat with a short retry for provider blips (529/timeout)."""
+        last = None
+        for attempt in range(3):
+            try:
+                return stream_chat(
+                    messages, model=r["model"], base_url=r["base_url"],
+                    tools=tools, thinking=r["thinking"], on_token=on_token,
+                    on_thinking=self._thinking_cb)
+            except Exception as e:
+                last = e
+                if attempt < 2:
+                    time.sleep(1.5 * (attempt + 1))
+        raise last
+
     def _agent_loop(self, messages, tools, r, on_token, intent=None,
-                    max_rounds=6):
+                    max_rounds=6, user_text=""):
         """Run tool rounds until the model produces a real answer.
 
         The assistant turn must carry its tool_calls (with ids) and every
@@ -1434,10 +1451,8 @@ class Rox:
         """
         trace, answer = [], ""
         for rnd in range(max_rounds):
-            text, calls, _reason = stream_chat(
-                messages, model=r["model"], base_url=r["base_url"],
-                tools=tools, thinking=r["thinking"], on_token=on_token,
-                on_thinking=self._thinking_cb)
+            text, calls, _reason = self._stream(messages, r, on_token,
+                                                tools=tools)
             text = text or ""
             calls = [c for c in (calls or []) if c.get("name")]
             if not calls:
@@ -1467,11 +1482,29 @@ class Rox:
                                  "arguments": json.dumps(args)}})
                 prepared.append((cid, c["name"], args))
             messages.append(assistant)
+            blocked = False
             for cid, name, args in prepared:
-                res = self._run_tool(name, args)
+                try:
+                    from safety import blocks_tool_for, REFUSAL
+                    if blocks_tool_for(user_text, name):
+                        res = ("refused by the safety policy: ROX N does not "
+                               "create malware. Do not retry with a different "
+                               "tool. Answer with this instead:\n" + REFUSAL)
+                        blocked = True
+                    else:
+                        res = self._run_tool(name, args)
+                except Exception:
+                    res = self._run_tool(name, args)
                 trace.append((name, args, res))
                 messages.append({"role": "tool", "tool_call_id": cid,
                                  "name": name, "content": str(res)[:4000]})
+            if blocked:
+                try:
+                    from safety import REFUSAL as _R
+                except Exception:
+                    _R = "I won't create malware."
+                answer = _R
+                break
         else:
             # still calling tools at the last round: ask for a summary
             messages.append({"role": "user", "content":
@@ -1486,6 +1519,11 @@ class Rox:
     def respond(self, user_text, images=None, on_token=None):
         t0 = time.perf_counter()
         self._turn_active = True
+        # the executor needs the request text for the safety gate
+        try:
+            self.texec.ctx.user_text = user_text or ""
+        except Exception:
+            pass
         # 1. safety
         lo = self._safety(user_text)
         if lo["locked"]:
@@ -1536,6 +1574,15 @@ class Rox:
                     "testbench with VCD dumping, render the waveform and "
                     "open it in GTKWave. Use open_app to launch desktop "
                     "software (gtkwave, blender, editors) when asked.")
+            if "filesystem" in _cats_hit or "web" in _cats_hit:
+                system += (
+                    "\n\nFILESYSTEM NOTE: this machine runs Windows cmd / "
+                    "PowerShell, not bash. To create or edit files call "
+                    "write_file once per file with an absolute path. Do NOT "
+                    "use mkdir -p, cat >, echo > file, or heredocs - they "
+                    "fail here. After writing, call list_directory to "
+                    "confirm, and never claim a file was created unless a "
+                    "tool result confirmed it.")
             if "security" in _cats_hit:
                 system += (
                     "\n\nSECURITY NOTE: this is a security request. Open with "
@@ -1562,8 +1609,9 @@ class Rox:
         intent = detect_intent(user_text)
         force_tool = None
         if not images:
-            ensure_tool = intent.tool if needs_force(intent) and \
-                intent.tool != "chat" else None
+            _force_ok = needs_force(intent) and intent.tool != "chat" \
+                and plausible_intent(intent.tool, user_text)
+            ensure_tool = intent.tool if _force_ok else None
             schemas = lazy_schemas(user_text, self.perms,
                                    ensure=ensure_tool)
             if schemas:
@@ -1576,7 +1624,7 @@ class Rox:
                         "query": {"type": "string"}},
                         "required": ["query"]}}}]
             # intent-first: force the specific tool call
-            if needs_force(intent) and intent.tool != "chat":
+            if _force_ok:
                 force_tool = intent.tool
                 if intent.tool == "write_file":
                     # The local server emits tool_calls unreliably for
@@ -1889,7 +1937,9 @@ class Rox:
             res = self.texec.run(force_tool, tool_args)
             trace.append((force_tool, tool_args, res.get("output", "")))
             tool_out = res.get("output", "")
-            if not res.get("ok"):
+            if res.get("policy") == "refused":
+                answer = tool_out
+            elif not res.get("ok"):
                 answer = f"Couldn't inspect: {tool_out[:200]}"
             else:
                 # feed the real result to the model for a grounded answer
@@ -1914,7 +1964,8 @@ class Rox:
         # provider can match results to calls)
         else:
             answer, trace = self._agent_loop(messages, tools, r, on_token,
-                                             intent=intent)
+                                             intent=intent,
+                                             user_text=user_text)
         if not answer and trace:
             text, _, _ = stream_chat(messages, model=r["model"],
                                      base_url=r["base_url"],

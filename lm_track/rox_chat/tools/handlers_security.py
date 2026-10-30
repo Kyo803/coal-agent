@@ -38,6 +38,12 @@ CODE_EXTS = {".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".java",
              ".ps1", ".bat", ".json", ".yaml", ".yml", ".toml", ".ini",
              ".env", ".cfg", ".conf", ".sql", ".v", ".sv", ".vhd", ".tf"}
 
+# SAST looks at program source only: data/config files produce false
+# positives (a JSON scan report that merely mentions system()).
+SAST_EXTS = {".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".java",
+             ".c", ".cpp", ".h", ".hpp", ".cs", ".php", ".rb", ".sh",
+             ".ps1", ".bat", ".sql", ".v", ".sv", ".vhd", ".tf"}
+
 SECRET_RULES = [
     (re.compile(r"AKIA[0-9A-Z]{16}"), "aws_access_key", "high"),
     (re.compile(r"(?i)-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?"
@@ -149,6 +155,22 @@ SAST_RULES = [
     (re.compile(r"requests\.(get|post|put|delete)\s*\(\s*[\"']"
                 r"(?:http://|file://|localhost|127\.0\.0\.1)"),
      "ssrf_plaintext", "medium", "plaintext/SSRF-prone request"),
+    # C / C++ memory-safety rules
+    (re.compile(r"\b(strcpy|strcat|sprintf|vsprintf|gets)\s*\("),
+     "unsafe_c_string", "high",
+     "unbounded C string write (buffer overflow)"),
+    (re.compile(r"\b(scanf|fscanf|sscanf)\s*\(\s*\"[^\"]*%s"), "scanf_s",
+     "medium", "%s without a width can overflow"),
+    (re.compile(r"\b(memcpy|memmove)\s*\([^,]+,[^,]+,\s*[a-zA-Z_]\w*\s*\)"),
+     "memcpy_variable", "medium", "variable-length copy: check bounds"),
+    (re.compile(r"\bsystem\s*\("), "system_call", "high",
+     "command injection via system()"),
+    (re.compile(r"\b(mktemp|tmpnam)\s*\("), "insecure_temp", "medium",
+     "race-prone temporary file"),
+    (re.compile(r"\brand\s*\(\s*\)|\bsrand\s*\("), "weak_rng", "medium",
+     "rand() is not cryptographic"),
+    (re.compile(r"\b(printf|fprintf)\s*\([^,)]*\)\s*;"), "format_string",
+     "low", "check for user-controlled format strings"),
 ]
 
 
@@ -161,7 +183,7 @@ def sast_check(args, ctx):
     files = _walk_files(root, pattern)
     findings = []
     for p in files:
-        if os.path.splitext(p)[1].lower() not in CODE_EXTS and not pattern:
+        if os.path.splitext(p)[1].lower() not in SAST_EXTS and not pattern:
             continue
         text = _read(p)
         if not text:
@@ -179,6 +201,19 @@ def sast_check(args, ctx):
 _CLF = re.compile(
     r'(?P<ip>[\d.]+|[\w:]+) - - \[(?P<ts>[^\]]+)\] "(?P<method>\w+) '
     r'(?P<path>\S+) [^"]*" (?P<status>\d{3}) (?P<bytes>\S+)')
+
+
+def binary_triage(args, ctx):
+    """Triage a PE/ELF without executing it. args: path, symbol, disasm."""
+    try:
+        from security_binary import triage
+    except Exception as e:
+        return {"ok": False, "output": f"triage module unavailable: {e}"}
+    p = _resolve(args.get("path", ""), ctx)
+    symbol = args.get("symbol")
+    if not symbol and args.get("disasm"):
+        symbol = "main"
+    return triage(p, symbol=symbol)
 
 
 def parse_logs(args, ctx):

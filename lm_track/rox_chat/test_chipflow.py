@@ -124,7 +124,7 @@ def main():
 
     print("== 11. waveform + 2D floorplan ==")
     from chipflow import waves, floorplan
-    rep7 = chipflow.build_block("t_wave", "counter8", make_views=False)
+    rep7 = chipflow.build_block("t_wave", "counter", width=8)
     ok("wave test design passes the gate", rep7["ok"] is True)
     d7 = os.path.dirname(rep7["path"])
     top7 = rep7.get("design") or "counter8"

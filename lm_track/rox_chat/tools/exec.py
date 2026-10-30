@@ -27,6 +27,7 @@ class ExecContext:
         os.makedirs(self.workspace, exist_ok=True)
         self.ask_callback = ask_callback
         self.notify_callback = notify_callback
+        self.user_text = ""
         self.todos = []
         self.scheduled = []
         self.mcp_tools = []
@@ -74,7 +75,27 @@ class ToolExecutor:
         if spec is None:
             return {"ok": False, "output": f"unknown tool: {name}",
                     "tool": name}
+        # Required arguments are declared in the spec. Without this check a
+        # model that emits write_file with no path silently writes into the
+        # workspace default (this happened: a refusal text became file.txt).
+        missing = [k for k in (spec.get("required") or [])
+                   if k not in args or args.get(k) is None]
+        if missing:
+            return {"ok": False,
+                    "output": f"{name}: missing required argument(s): "
+                              f"{', '.join(missing)}",
+                    "tool": name, "invalid_args": True}
         declared = spec["tier"]
+        # Hard safety gate: a clear "make me malware" request must never
+        # reach a mutating tool, on any route (agent loop or forced intent).
+        try:
+            from safety import blocks_tool_for, REFUSAL as _REF
+            if blocks_tool_for(getattr(self.ctx, "user_text", ""), name):
+                return {"ok": False, "policy": "refused",
+                        "output": _REF + "\n\n(refused by safety policy; "
+                                  "no tool was run)", "tool": name}
+        except Exception:
+            pass
         if self.perms.blocked(name, declared) and name not in self.perms.allow_tier2:
             return {"ok": False,
                     "output": f"tool '{name}' is disabled (Tier 2). "
@@ -145,6 +166,15 @@ def lazy_schemas(text, perms=None, max_tools=30, ensure=None):
     # guarantee the intent-forced tool is exposed
     if ensure:
         names.append(ensure)
+    # ...and that a broad request can still act: a long category list must
+    # never crowd out the basic file/exec tools (this made the model claim
+    # it had created files while write_file was not even offered).
+    for e in ("read_file", "write_file", "list_directory", "run_command"):
+        if e in names:
+            continue
+        sp = S.get(e)
+        if sp and perms.tier(e, sp["tier"]) != 2:
+            names.append(e)
     # NOTE: list_tools/use_category are intentionally NOT exposed to the
     # model — they tempt it to "navigate the menu" instead of doing real
     # work (e.g. calling glob/read_file). Categories are already

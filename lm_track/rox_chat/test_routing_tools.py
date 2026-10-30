@@ -55,6 +55,41 @@ for prompt in ("what is 12 + 5", "write a haiku about the sea"):
     ok(f"{prompt[:40]:42s} -> no chip/security",
        "chip" not in cats and "security" not in cats)
 
+print("== web requests must be able to write files ==")
+for prompt in (
+    r"Create a small website in C:\x\site using write_file: index.html "
+    "and a click counter in app.js",
+    "Create an Amazon-like storefront called Nile with a cart",
+):
+    cats = categories_for_trigger(prompt)
+    ns = names(prompt)
+    ok(f"{prompt[:40]:42s} -> write_file + no chip",
+       "write_file" in ns and "chip" not in cats)
+
+print("== forced intents cannot be hijacked by one keyword ==")
+from tools.intent import detect_intent, plausible_intent
+HIJACK = [
+    (r"Create a website in C:\x with app.js (a click counter)", "chip_build"),
+    ("Create an Amazon-like storefront called Nile", "remember"),
+]
+for prompt, bad in HIJACK:
+    it = detect_intent(prompt)
+    ok(f"{prompt[:40]:42s} -> does not force {bad}",
+       not (it.tool == bad and plausible_intent(bad, prompt)))
+ok("a real chip request still forces chip_build",
+   plausible_intent("chip_build", "build a 4-bit counter chip"))
+ok("a real memory request still forces remember",
+   plausible_intent("remember", "remember that I use 24 GB of RAM"))
+ok("an explicit path is not turned into a new project",
+   not plausible_intent("build_project",
+                        r"create a site in C:\x\site"))
+
+print("== missing required arguments are rejected ==")
+from tools.exec import ToolExecutor
+res = ToolExecutor().run("write_file", {"content": "x"})
+ok("write_file without a path is rejected",
+   res.get("ok") is False and "missing required" in res.get("output", ""))
+
 print("== executables stay confirm-tier ==")
 from tools import specs as S
 for name in ("run_command", "write_file", "open_app", "chip_build"):
