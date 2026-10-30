@@ -11,6 +11,7 @@ Returns the full text plus any tool calls (OpenAI-normalized).
 """
 import json
 import os
+import time
 import urllib.request
 
 from rox_config import cfg
@@ -74,8 +75,17 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
 
     content, tool_calls, reasoning = "", [], ""
     in_think, buf = False, ""
+    # ROX_SSE_LOG: append every raw SSE frame with a timestamp. Used to tell
+    # a silent provider apart from a stalled client.
+    sse_log = os.environ.get("ROX_SSE_LOG")
     with urllib.request.urlopen(req, timeout=timeout) as r:
         for raw in r:
+            if sse_log:
+                try:
+                    with open(sse_log, "a", encoding="utf-8") as _f:
+                        _f.write(f"{time.time():.3f} {raw[:300]!r}\n")
+                except Exception:
+                    pass
             line = raw.decode("utf-8", errors="ignore").strip()
             if not line or not line.startswith("data:"):
                 continue

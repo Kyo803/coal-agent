@@ -2280,22 +2280,111 @@ def main():
         _inbox = _queue.Queue()
         _replies = _queue.Queue()
 
+        def _handle_line(_ln):
+            _ln = _ln.strip()
+            if not _ln:
+                return
+            try:
+                _obj = _json.loads(_ln)
+            except Exception:
+                _emit({"t": "error", "message": "bad json request"})
+                return
+            # approvals must bypass the command queue: the main loop is
+            # blocked inside the tool while it waits for this answer
+            if isinstance(_obj, dict) and "confirm" in _obj:
+                _replies.put(bool(_obj.get("confirm")))
+            else:
+                _inbox.put(_obj)
+
         def _reader():
-            for _ln in sys.stdin:
-                _ln = _ln.strip()
-                if not _ln:
-                    continue
+            # A *blocking* read on a stdin pipe stalls the rest of the
+            # process on Windows: a tool importing a module (DLL/file reads)
+            # never finished while the reader sat in readline(), so chip
+            # builds froze with the UI on "thinking". Avoid the blocking read
+            # entirely: real non-blocking mode where allowed, else peek at the
+            # pipe before reading.
+            def _feed(_raw_line):
+                _handle_line(_raw_line.decode("utf-8", "replace"))
+
+            fd = None
+            try:
+                fd = sys.stdin.fileno()
+            except Exception:
+                fd = None
+
+            if fd is not None:
                 try:
-                    _obj = _json.loads(_ln)
+                    os.set_blocking(fd, False)
+                    _emit({"t": "stdin-mode", "mode": "nonblocking"})
+                    _buf = b""
+                    while True:
+                        try:
+                            _chunk = os.read(fd, 4096)
+                        except BlockingIOError:
+                            time.sleep(0.02)
+                            continue
+                        except (OSError, ValueError):
+                            break
+                        if not _chunk:
+                            break
+                        _buf += _chunk
+                        while b"\n" in _buf:
+                            _raw, _, _buf = _buf.partition(b"\n")
+                            _feed(_raw)
+                    if _buf.strip():
+                        _feed(_buf)
+                    _inbox.put(None)
+                    return
                 except Exception:
-                    _emit({"t": "error", "message": "bad json request"})
-                    continue
-                # approvals must bypass the command queue: the main loop is
-                # blocked inside the tool while it waits for this answer
-                if isinstance(_obj, dict) and "confirm" in _obj:
-                    _replies.put(bool(_obj.get("confirm")))
-                else:
-                    _inbox.put(_obj)
+                    pass
+                # Windows pipes opened by the parent refuse set_blocking
+                # (WinError 5), so poll with PeekNamedPipe instead.
+                try:
+                    import ctypes
+                    import msvcrt
+                    from ctypes import wintypes
+
+                    _k = ctypes.WinDLL("kernel32", use_last_error=True)
+                    _peek = _k.PeekNamedPipe
+                    _peek.argtypes = [wintypes.HANDLE, wintypes.LPVOID,
+                                      wintypes.DWORD, wintypes.LPDWORD,
+                                      wintypes.LPDWORD, wintypes.LPDWORD]
+                    _peek.restype = wintypes.BOOL
+                    _h = msvcrt.get_osfhandle(fd)
+                    _avail = wintypes.DWORD(0)
+                    if _peek(_h, None, 0, None, ctypes.byref(_avail), None):
+                        _emit({"t": "stdin-mode", "mode": "peek"})
+                        _buf = b""
+                        while True:
+                            _avail.value = 0
+                            if not _peek(_h, None, 0, None,
+                                         ctypes.byref(_avail), None):
+                                # 109 = ERROR_BROKEN_PIPE -> writer closed
+                                if ctypes.get_last_error() == 109:
+                                    break
+                                time.sleep(0.02)
+                                continue
+                            if _avail.value == 0:
+                                time.sleep(0.02)
+                                continue
+                            _chunk = os.read(fd, min(int(_avail.value), 8192))
+                            if not _chunk:
+                                break
+                            _buf += _chunk
+                            while b"\n" in _buf:
+                                _raw, _, _buf = _buf.partition(b"\n")
+                                _feed(_raw)
+                        if _buf.strip():
+                            _feed(_buf)
+                        _inbox.put(None)
+                        return
+                except Exception as _e:
+                    _emit({"t": "stdin-mode", "mode": "peek-failed",
+                           "error": str(_e)[:120]})
+            _emit({"t": "stdin-mode", "mode": "blocking"})
+            # console / unusual stream: blocking iteration is safe there
+            for _ln in sys.stdin:
+                _handle_line(_ln)
             _inbox.put(None)          # EOF -> stop the loop
 
         _threading.Thread(target=_reader, daemon=True).start()
