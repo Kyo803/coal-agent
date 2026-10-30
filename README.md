@@ -150,5 +150,15 @@ docs/
 
 ---
 
+## Authorship
+
+Copyright © 2026 **Zaim Khan (ROX N)**. Licensed Apache-2.0.
+
+See [NOTICE.md](NOTICE.md) for provenance (first public commit, repository of
+record) and the attribution requirements anyone redistributing this work must
+follow.
+
+---
+
 > "Anyone can make a model write Verilog. ROX N makes it prove the chip
 > works — or refuses to call it a chip."

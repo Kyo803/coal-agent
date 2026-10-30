@@ -1,5 +1,31 @@
 # NOTICE
 
+## Copyright and ownership
+
+**Copyright © 2026 Zaim Khan (ROX N). All rights reserved except as granted
+by the Apache License 2.0.**
+
+- Original work: **Zaim Khan**, sole author and owner.
+- Repository of record: https://github.com/Kyo803/rox-n
+- First published publicly: **2026-10-28** (commit `532f16a`).
+- Licensing: Apache License 2.0 (see `LICENSE`).
+
+The Apache License 2.0 grants others permission to **use, modify and
+redistribute** this work. It does **not** transfer ownership or authorship.
+
+Anyone redistributing this work or a derivative **must**:
+
+1. keep this NOTICE file and the copyright notice (Apache-2.0 §4(c)), and
+2. state prominently that they changed the files (Apache-2.0 §4(b)).
+
+The patent grant in Apache-2.0 §3 **terminates automatically** for anyone who
+initiates patent litigation alleging that this work infringes their patents.
+
+The Git commit history in the repository of record is the timestamped record
+of authorship.
+
+---
+
 ROX N — owned by ROX N. Includes the ROX-N-35B-A3B model build and the
 ROX N software (this repository).
 
