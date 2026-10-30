@@ -2295,7 +2295,7 @@ def main():
             cid = _cid[0]
             _emit({"t": "confirm", "id": cid, "prompt": str(prompt)[:800]})
             try:
-                allow = _replies.get(timeout=600)
+                allow = _replies.get(timeout=120)
             except Exception:
                 _emit({"t": "confirm-done", "id": cid, "allow": False})
                 return "n"

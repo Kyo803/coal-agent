@@ -61,6 +61,10 @@
   .ln.meta{color:var(--faint);font-size:11.5px}
   .ln.ok{color:var(--grey)}
   .ln.sys{color:var(--dim)}
+  .ln.confirm{color:var(--white);font-weight:700;margin:10px 0 0;
+    border-left:2px solid #fff;padding-left:8px}
+  .ln.confirm-q{color:var(--white);margin:2px 0 10px;padding-left:10px}
+  .ln.confirm-q .hint{color:var(--faint);font-weight:400}
 
   /* ---- prompt + block cursor ---- */
   #prompt{flex:0 0 auto;display:flex;align-items:center;gap:8px;
@@ -180,17 +184,6 @@
   <span>Ctrl+T think · Ctrl+O tools · Ctrl+L clear</span>
 </div>
 
-<div id="modal">
-  <div id="box">
-    <div class="hd">permission required</div>
-    <div class="bd" id="mBody"></div>
-    <div class="ft">
-      <button class="deny" id="mDeny">deny (n)</button>
-      <button class="allow" id="mAllow">allow (y)</button>
-    </div>
-  </div>
-</div>
-
 <div id="lb"><img id="lbImg" alt=""></div>
 
 <script>
@@ -199,6 +192,13 @@ const $ = (id) => document.getElementById(id);
 const term = $('term'), cmd = $('cmd'), spin = $('spin'), cursor = $('cursor');
 
 let busy = false, thinkOn = true, toolsOn = true;
+let gotReady = false;
+setTimeout(() => {
+  if (!gotReady) {
+    $('dot').className = 'dot err';
+    el('err', 'agent did not report ready — see %TEMP%\\roxn_agent.log');
+  }
+}, 25000);
 let curThink = null, curAns = null;
 const history = []; let hIdx = -1;
 const seen = new Set();
@@ -318,6 +318,7 @@ function onEvent(raw){
   let e; try { e = JSON.parse(raw); } catch { return; }
   switch(e.t){
     case 'ready':
+      gotReady = true;
       if (e.llm){
         $('prov').textContent = e.llm.provider || 'local';
         $('model').textContent = e.llm.model || '—';
@@ -350,17 +351,33 @@ function onEvent(raw){
 }
 
 /* ---------------------------- approvals -------------------------------- */
+let pendingConfirm = false;
+
 function showConfirm(prompt, id){
-  $('mBody').textContent = prompt || 'allow this action?';
-  $('modal').classList.add('on');
-  cmd.blur();
+  dropHello();
+  const a = document.createElement('div');
+  a.className = 'ln confirm';
+  a.textContent = '⚠ permission required';
+  const b = document.createElement('div');
+  b.className = 'ln confirm';
+  b.style.fontWeight = '400';
+  b.textContent = '  ' + (prompt || 'allow this action?').replace(/\s*\[y\/n\]:?\s*$/, '');
+  const q = document.createElement('div');
+  q.className = 'ln confirm-q';
+  q.innerHTML = '  allow? <b>[y]</b>es / <b>[n]</b>o ' +
+                '<span class="hint">(or Esc to deny)</span>';
+  term.appendChild(a); term.appendChild(b); term.appendChild(q);
+  autoscroll(true);
+  pendingConfirm = true;
+  cmd.value = '';
+  cmd.focus();
   drawCursor();
-  try { $('mAllow').focus(); } catch(_) {}
 }
+
 function answerConfirm(allow){
-  $('modal').classList.remove('on');
+  pendingConfirm = false;
   if (T) T.core.invoke('send_confirm', { allow }).catch(()=>{});
-  el('sys', allow ? 'allow →' : 'deny →');
+  el(allow ? 'ok' : 'sys', allow ? '  allow →' : '  deny →');
   cmd.focus(); drawCursor();
 }
 
@@ -447,6 +464,7 @@ async function submit(){
 
 /* ------------------------------ input ----------------------------------- */
 cmd.addEventListener('keydown', (e) => {
+  if (pendingConfirm) return;      // let the global handler answer y/n
   if (e.key === 'Enter') { e.preventDefault(); submit(); }
   else if (e.key === 'ArrowUp') {
     e.preventDefault();
@@ -460,10 +478,13 @@ cmd.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if ($('modal').classList.contains('on')) {
-    if (e.key === 'y' || e.key === 'Enter') { e.preventDefault(); answerConfirm(true); }
-    if (e.key === 'n' || e.key === 'Escape') { e.preventDefault(); answerConfirm(false); }
-    return;
+  if (pendingConfirm) {
+    if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+      e.preventDefault(); answerConfirm(true); return;
+    }
+    if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+      e.preventDefault(); answerConfirm(false); return;
+    }
   }
   if (e.ctrlKey && e.key.toLowerCase() === 't') {
     e.preventDefault(); thinkOn = !thinkOn;
@@ -495,8 +516,6 @@ $('cRail').onclick = () => {
 };
 $('cThink').onclick = () => document.dispatchEvent(new KeyboardEvent('keydown',{key:'t',ctrlKey:true}));
 $('cTools').onclick = () => document.dispatchEvent(new KeyboardEvent('keydown',{key:'o',ctrlKey:true}));
-$('mAllow').onclick = () => answerConfirm(true);
-$('mDeny').onclick = () => answerConfirm(false);
 $('lb').onclick = () => $('lb').classList.remove('on');
 document.querySelectorAll('.qbtn').forEach(b => {
   b.onclick = () => { cmd.value = b.dataset.c; cmd.focus(); drawCursor(); };
