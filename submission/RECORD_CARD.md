@@ -7,7 +7,7 @@ Read this off a second screen. Do not memorise it.
 ## Pre-flight (2 minutes, before you hit record)
 
 ```powershell
-cd "C:\Users\gamel\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
+cd "C:\Users\gamel\OneDrive\Documents\Default Project\Coal\agent"
 .\demo.cmd
 ```
 

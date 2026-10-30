@@ -1,47 +1,21 @@
-# --- model weights and training data (multi-GB, never in git) -------------
-*.safetensors
-*.pt
-*.pth
-*.ckpt
-*.gguf
-*.bin
-*.pkl
-*.npy
-*.npz
-lm_track/mini_chat/
-lm_track/from_scratch/tinystories.pt
-lm_track/coal_chat/bigindex/
-lm_track/coal_chat/dpo_prefs.jsonl
-lm_track/coal_chat/coal_brain/
-lm_track/coal_chat/coal_chat/
-lm_track/coal_chat/coal_online_dpo/
-lm_track/coal_chat/coal_kto/
-lm_track/coal_chat/coal_orpo/
-
 # --- generated work products ---------------------------------------------
 .coal/
 *.vcd
 *.out
 __pycache__/
 *.pyc
-*.pyo
-.pytest_cache/
-*.egg-info/
-dist/
-build/
 
-# --- OS / editor ----------------------------------------------------------
-.DS_Store
-Thumbs.db
-desktop.ini
-*.swp
-*~
-.vscode/
-.idea/
-
-# --- desktop build artifacts ---------------------------------------------
+# --- local build artefacts (rebuild with desktop/build.cmd) ---------------
+*.exe
+*.exe~
 desktop/src-tauri/target/
-desktop/launcher/coal-launcher.exe
+desktop/src-tauri/gen/schemas/
+node_modules/
 
-desktop/*.exe
-
+# --- large local data, never commit --------------------------------------
+archive/training/
+archive/scratch/
+*.pt
+*.gguf
+*.safetensors
+*.bin

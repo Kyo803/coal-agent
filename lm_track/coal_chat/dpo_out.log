@@ -1,4 +1,0 @@
-[dpo] prefs=40000 persona=12
-Loading weights:   0%|          | 0/272 [00:00<?, ?it/s]Loading weights:  26%|##5       | 70/272 [00:00<00:00, 687.68it/s]Loading weights: 100%|##########| 272/272 [00:00<00:00, 1435.09it/s]
-[dpo] step 1/50 loss=0.693 margin=0.000 (242s)
-[dpo] step 25/50 loss=0.694 margin=-0.020 (5613s)

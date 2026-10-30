@@ -35,13 +35,13 @@ fn alog(s: &str) {
 }
 
 /// Where the Python agent lives. COAL_DIR wins; otherwise resolve relative to
-/// this crate (desktop/src-tauri -> ../../lm_track/coal_chat).
+/// this crate (desktop/src-tauri -> ../../agent).
 fn coal_dir() -> std::path::PathBuf {
     if let Ok(d) = std::env::var("COAL_DIR") {
         return std::path::PathBuf::from(d);
     }
     let here = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    here.join("..").join("..").join("lm_track").join("coal_chat")
+    here.join("..").join("..").join("agent")
 }
 
 fn spawn_agent(app: tauri::AppHandle, shared: Shared, queue: Queue) {
@@ -57,7 +57,7 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared, queue: Queue) {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .env("CoalO_35B", "1")
+        .env("COAL_NO_35B", "1")
         .env("PYTHONUNBUFFERED", "1")
         .spawn()
     {
@@ -70,7 +70,7 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared, queue: Queue) {
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
-                .env("CoalO_35B", "1")
+                .env("COAL_NO_35B", "1")
                 .env("PYTHONUNBUFFERED", "1")
                 .spawn()
             {

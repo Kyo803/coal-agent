@@ -62,14 +62,14 @@ connection width-checked before a line of Verilog is emitted.*
 ```powershell
 # 1. hosted inference (optional — falls back to local Ollama)
 $env:NEBIUS_API_KEY = "..."        # Nebius Token Factory
-$env:CoalEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+$env:COAL_AGENT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # 2. build and verify a chip
-cd Coal\lm_track\coal_chat
+cd Coal\agent
 py -3.15 -c "import chipflow; r = chipflow.build('demo', spec='an 8-bit counter'); print(chipflow.summary_text(r))"
 
 # 3. the terminal UI
-coal_tui\coal-tui.exe
+tui\coal-tui.exe
 ```
 
 The toolchain runs inside WSL; Coal detects it automatically and, if it is
@@ -100,7 +100,7 @@ We report **44/50** because the gate refused the rest.
 
 - The design model runs on **Nebius Token Factory** (OpenAI-compatible,
   NVIDIA-accelerated, default `nvidia/nemotron-3-super-120b-a12b`). The
-  adapter is endpoint-agnostic: point `CoalEBIUS_URL` at an **NVIDIA NIM**
+  adapter is endpoint-agnostic: point `COAL_BASE_URL` at an **NVIDIA NIM**
   endpoint and the same agent uses it.
 - Everything that *decides* runs locally and deterministically. No network
   dependency in the verification path — a demo cannot be derailed by Wi-Fi.
@@ -124,9 +124,9 @@ submission/
   RESULTS.md          all 50 designs, verified and rejected
   DEMO.md             3-minute demo script
   assets/             architecture, composition graph, die map, gate schematic, 3D package
-lm_track/coal_chat/
+agent/
   chipflow/           the engine: blocks, reference models, gate, P&R, composition
-  coal_tui/            the terminal UI (Go)
+  tui/            the terminal UI (Go)
   tools_selftest.py   429-tool self-test
 ```
 

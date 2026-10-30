@@ -6,8 +6,8 @@ two notches. Cut every wait longer than ~2 seconds.
 ## Before recording
 
 ```powershell
-# one command: reads the key, points at Nebius, sets CoalO_35B, starts the TUI
-cd "C:\Users\gamel\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
+# one command: reads the key, points at Nebius, sets COAL_NO_35B, starts the TUI
+cd "C:\Users\gamel\OneDrive\Documents\Default Project\Coal\agent"
 .\demo.cmd
 ```
 

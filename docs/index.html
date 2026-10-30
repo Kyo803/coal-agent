@@ -180,13 +180,13 @@ $env:NEBIUS_API_KEY  = "..."
 $env:COAL_BASE_URL    = "https://api.studio.nebius.com/v1"
 $env:COAL_AGENT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
-cd Coal\lm_track\coal_chat
+cd Coal\agent
 
 # build and verify a chip
 py -3.15 -c "import chipflow; r = chipflow.build('demo', spec='an 8-bit counter'); print(chipflow.summary_text(r))"
 
 # the terminal UI
-coal_tui\coal-tui.exe</pre>
+tui\coal-tui.exe</pre>
   <p style="margin-top:18px;color:var(--dim)">The toolchain runs inside WSL;
   Coal detects it and installs <code>iverilog verilator yosys gtkwave
   nextpnr-ice40</code> if missing.</p>

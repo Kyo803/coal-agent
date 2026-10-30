@@ -1,3 +1,0 @@
-[sft] train=19950 val=150
-[sft] lora adapters=0.46M trainable=0.46M
-[sft] val_ppl before=12.269

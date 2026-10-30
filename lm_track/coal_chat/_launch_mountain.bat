@@ -1,5 +1,0 @@
-@echo off
-cd /d "C:\Users\WERU1\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
-echo [mountain] start %date% %time% >> "C:\Users\WERU1\OneDrive\Documents\Default Project\_mountain.log"
-python -u coal.py --say "build a complete project: a TypeScript ray tracer that renders a realistic mountain landscape, like the Alps. It must produce: a snow-capped rocky mountain peak, green forested lower slopes, a blue sky with clouds and atmospheric haze, lit by a sun with shadows. Use procedural fractal-noise terrain (a heightmap), height-based coloring (white snow high up, grey rock in the middle, dark green forest lower down), a sky gradient, and per-pixel ray casting against the terrain. Write the result to output.png using pngjs. Make sure 'npm run build' succeeds and running it produces output.png." >> "C:\Users\WERU1\OneDrive\Documents\Default Project\_mountain.log" 2>&1
-echo [mountain] done %date% %time% >> "C:\Users\WERU1\OneDrive\Documents\Default Project\_mountain.log"

@@ -61,9 +61,9 @@ func coalDir() string {
 	base := filepath.Dir(exe)
 	// the launcher may sit in desktop/ or desktop/launcher/ - probe both
 	cands := []string{
-		filepath.Join(base, "..", "..", "lm_track", "coal_chat"),
-		filepath.Join(base, "..", "lm_track", "coal_chat"),
-		filepath.Join(base, "lm_track", "coal_chat"),
+		filepath.Join(base, "..", "..", "agent"),
+		filepath.Join(base, "..", "agent"),
+		filepath.Join(base, "agent"),
 	}
 	for _, c := range cands {
 		c = filepath.Clean(c)
@@ -99,7 +99,7 @@ func main() {
 	dir := coalDir()
 	if !exists(filepath.Join(dir, "coal.py")) {
 		fmt.Printf("[!] agent not found at %s\n", dir)
-		fmt.Println("    set COAL_DIR to the lm_track/coal_chat directory")
+		fmt.Println("    set COAL_DIR to the agent directory")
 		os.Exit(1)
 	}
 
@@ -109,7 +109,7 @@ func main() {
 	}
 
 	env := append([]string{}, os.Environ()...)
-	env = append(env, "CoalO_35B=1", "COAL_DIR="+dir)
+	env = append(env, "COAL_NO_35B=1", "COAL_DIR="+dir)
 
 	key := readKey()
 	if key != "" {

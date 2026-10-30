@@ -11,7 +11,10 @@ desktop/
   src-tauri/               Rust shell: spawns the agent, streams its events
   launcher/                Go launcher: checks prerequisites, starts the app
   make_icon.py             generates the app icon
+  build.cmd                icon -> Rust -> Go, in one command
 ```
+
+The launcher finds the agent at `../agent` (override with `COAL_DIR`).
 
 ## What it does
 
@@ -73,7 +76,7 @@ If a key is found it configures Nebius automatically:
 With no key it falls back to the local model and says so.
 
 The launcher also verifies Python, finds the agent directory, and sets
-`CoalO_35B=1` so the 19.7 GB model is never loaded. If
+`COAL_NO_35B=1` so the 19.7 GB model is never loaded. If
 `coal-desktop.exe` is not next to it, it looks in
 `src-tauri/target/{debug,release}`.
 

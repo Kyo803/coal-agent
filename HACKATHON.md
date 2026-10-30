@@ -49,8 +49,8 @@ chip; a live demo risks dead air.
 provider()  ->  "nebius" if NEBIUS_API_KEY else "ollama"
 ```
 
-- **Nebius AI Studio**: `CoalEBIUS_URL` (default `https://api.studio.nebius.com/v1`),
-  `CoalEBIUS_MODEL` (default `Qwen/Qwen2.5-Coder-32B-Instruct`).
+- **Nebius AI Studio**: `COAL_BASE_URL` (default `https://api.studio.nebius.com/v1`),
+  `COAL_AGENT_MODEL` (default `Qwen/Qwen2.5-Coder-32B-Instruct`).
 - Because it is OpenAI-compatible, the **same adapter can point at an NVIDIA
   NIM endpoint** â€” change the base URL and model name. That is a one-line
   change, not a rewrite.
@@ -59,7 +59,7 @@ provider()  ->  "nebius" if NEBIUS_API_KEY else "ollama"
 
 ```powershell
 $env:NEBIUS_API_KEY = "..."                       # required for the sponsor angle
-$env:CoalEBIUS_MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
+$env:COAL_AGENT_MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
 py -3.15 -c "from chipflow import model; print(model.provider_status())"
 ```
 

@@ -65,14 +65,14 @@ connection width-checked before a line of Verilog is emitted.*
 ```powershell
 # 1. hosted inference (optional — falls back to local Ollama)
 $env:NEBIUS_API_KEY = "..."        # Nebius Token Factory
-$env:CoalEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+$env:COAL_AGENT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # 2. build and verify a chip
-cd Coal\lm_track\coal_chat
+cd Coal\agent
 py -3.15 -c "import chipflow; r = chipflow.build('demo', spec='an 8-bit counter'); print(chipflow.summary_text(r))"
 
 # 3. the terminal UI
-coal_tui\coal-tui.exe
+tui\coal-tui.exe
 ```
 
 The toolchain runs inside WSL; Coal detects it automatically and, if it is
@@ -110,7 +110,7 @@ one-shot and 5/10 with up to two repairs.
 
 - The design model runs on **Nebius Token Factory** (OpenAI-compatible,
   NVIDIA-accelerated, default `nvidia/nemotron-3-super-120b-a12b`). The
-  adapter is endpoint-agnostic: point `CoalEBIUS_URL` at an **NVIDIA NIM**
+  adapter is endpoint-agnostic: point `COAL_BASE_URL` at an **NVIDIA NIM**
   endpoint and the same agent uses it.
 - Everything that *decides* runs locally and deterministically. No network
   dependency in the verification path — a demo cannot be derailed by Wi-Fi.
@@ -130,26 +130,44 @@ one-shot and 5/10 with up to two repairs.
 - The local machine has no NVIDIA GPU; the GPU work happens in Nebius
   inference.
 
-## Repository layout
+## Repository map
 
-```
-submission/
-  README.md           judge-facing writeup
-  ARCHITECTURE.md     the verification design in detail
-  RESULTS.md          all 50 designs, verified and rejected
-  BENCHMARK.md        Nemotron measurements, including the failures
-  DEMO.md             3-minute demo script
-  assets/             architecture, composition graph, die map, gate schematic, 3D package,
-                      plus 3:2 gallery exports in assets/gallery/
-lm_track/coal_chat/
-  chipflow/           the engine: blocks, reference models, gate, P&R, composition
-  coal_tui/            the terminal UI (Go)
-  nemotron_bench.py   hosted-model benchmark (the form's numbers)
-  tools_selftest.py   429-tool self-test
-desktop/
-  ui/index.html       native desktop client (Rust/Tauri shell + Go launcher)
-docs/
-  NEUROMORPHIC.md     the earlier neuromorphic architecture track
+Start with the first row; the rest is supporting detail.
+
+| Where | What you will find |
+|---|---|
+| [`README.md`](README.md) | this page: what Coal is, results, quickstart |
+| [`submission/`](submission/) | judge writeup, architecture, all 50 results, benchmark, demo script, 3:2 gallery |
+| [`agent/`](agent/) | the runtime: entry point, chip engine, tools, memory, TUI |
+| [`agent/chipflow/`](agent/chipflow/) | blocks → gate → place & route → floorplan → waveforms |
+| [`agent/docs/`](agent/docs/) | design notes, model card, evaluation, roadmap |
+| [`desktop/`](desktop/) | native desktop app (Rust/Tauri shell + Go launcher + UI) |
+| [`docs/`](docs/) | landing page (also the GitHub Pages site) |
+| [`archive/`](archive/) | earlier experiments and training data, kept for provenance |
+
+```text
+submission/            judge-facing writeup and media
+  ARCHITECTURE.md      the verification design in detail
+  RESULTS.md           all 50 catalogue designs, passed and rejected
+  BENCHMARK.md         Nemotron measurements, including failures
+  DEMO.md              the 3-minute demo script
+  assets/              diagrams, die map, 3D package, 3:2 gallery
+
+agent/                 Python runtime
+  coal.py              entry point (chat, JSON protocol, one-shot)
+  coal_config.py       configuration (~/.coal/config.json)
+  chipflow/            chip engine: generators, gate, P&R, waves, floorplan
+  tools/               434 tool definitions and handlers
+  memory/ board/       recall and the project board
+  builder/ learning/   project build loop and self-directed study
+  sandbox/ governance/ isolated Linux and resource safety
+  tui/                 terminal UI (Go)
+  docs/ data/ scripts/ notes, fixtures, setup scripts
+  test_*.py            the test suite
+
+desktop/               Tauri shell + Go launcher + terminal UI
+docs/                  landing page (GitHub Pages)
+archive/               history: legacy packages, neuromorphic track, training data
 ```
 
 ---
