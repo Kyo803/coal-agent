@@ -522,19 +522,29 @@ document.querySelectorAll('.qbtn').forEach(b => {
 });
 
 if (T) {
-  T.event.listen('agent', (e) => onEvent(e.payload));
-  T.event.listen('agent-error', (e) => el('err', String(e.payload)));
-  T.event.listen('agent-stderr', (e) => {
-    const s = String(e.payload || '');
-    if (/error|traceback|exception/i.test(s)) console.warn('[agent]', s);
-  });
-  T.event.listen('agent-exit', () => {
-    $('dot').className = 'dot err'; $('prov').textContent = 'agent stopped';
-    setBusy(false);
-    el('err', 'agent exited — press restart in the top bar');
-  });
+  // Poll a Rust-side queue rather than subscribing to the event plugin.
+  // This keeps the UI working even if the webview cannot listen.
+  let polling = false;
+  setInterval(async () => {
+    if (polling) return;
+    polling = true;
+    try {
+      const lines = await T.core.invoke('drain_events');
+      if (lines && lines.length) {
+        for (const l of lines) onEvent(l);
+      }
+    } catch (err) {
+      if (!window.__pollErrShown) {
+        window.__pollErrShown = true;
+        el('err', 'cannot reach the agent bridge: ' + err);
+      }
+    } finally {
+      polling = false;
+    }
+  }, 250);
 } else {
   $('prov').textContent = 'not in tauri';
+  el('err', 'window.__TAURI__ missing — withGlobalTauri is off');
 }
 
 window.addEventListener('DOMContentLoaded', () => { cmd.focus(); drawCursor(); });

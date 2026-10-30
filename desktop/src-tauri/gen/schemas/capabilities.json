@@ -1,1 +1,1 @@
-{}
+{"default":{"identifier":"default","description":"ROX N desktop: allow the UI to listen for agent events and drive the window.","local":true,"windows":["main"],"permissions":["core:default","core:event:default","core:window:default","core:webview:default","core:app:default"]}}

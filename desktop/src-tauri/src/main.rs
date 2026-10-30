@@ -5,6 +5,7 @@
 // and forwards its newline-delimited events to the webview.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{Arc, Mutex};
@@ -18,6 +19,9 @@ struct Agent {
 }
 
 type Shared = Arc<Mutex<Agent>>;
+/// Buffered agent output, drained by the UI on a timer. This is deliberately
+/// independent of the event system: a webview that cannot listen still works.
+type Queue = Arc<Mutex<VecDeque<String>>>;
 
 /// Append a line to %TEMP%\roxn_agent.log for diagnosing the bridge.
 fn alog(s: &str) {
@@ -40,7 +44,7 @@ fn rox_dir() -> std::path::PathBuf {
     here.join("..").join("..").join("lm_track").join("rox_chat")
 }
 
-fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
+fn spawn_agent(app: tauri::AppHandle, shared: Shared, queue: Queue) {
     let dir = rox_dir();
     alog(&format!("=== spawn agent in {}", dir.display()));
 
@@ -94,9 +98,16 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
 
     if let Some(out) = stdout {
         let app2 = app.clone();
+        let q2 = queue.clone();
         std::thread::spawn(move || {
             for line in BufReader::new(out).lines().map_while(Result::ok) {
                 alog(&format!("OUT {line}"));
+                if let Ok(mut q) = q2.lock() {
+                    q.push_back(line.clone());
+                    if q.len() > 4000 {
+                        q.pop_front();
+                    }
+                }
                 let _ = app2.emit("agent", line);
             }
             alog("=== agent stdout closed");
@@ -105,9 +116,21 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
     }
     if let Some(err) = stderr {
         let app3 = app.clone();
+        let q3 = queue.clone();
         std::thread::spawn(move || {
             for line in BufReader::new(err).lines().map_while(Result::ok) {
                 alog(&format!("ERR {line}"));
+                // surface genuine errors in the UI queue too
+                if line.to_lowercase().contains("traceback")
+                    || line.to_lowercase().contains("error")
+                {
+                    if let Ok(mut q) = q3.lock() {
+                        q.push_back(format!(
+                            "{{\"t\":\"error\",\"message\":{}}}",
+                            serde_json::to_string(&line).unwrap_or_default()
+                        ));
+                    }
+                }
                 let _ = app3.emit("agent-stderr", line);
             }
         });
@@ -152,7 +175,8 @@ fn send_tool(shared: tauri::State<'_, Shared>, tool: String,
 }
 
 #[tauri::command]
-fn restart_agent(app: tauri::AppHandle, shared: tauri::State<'_, Shared>) -> Result<(), String> {
+fn restart_agent(app: tauri::AppHandle, shared: tauri::State<'_, Shared>,
+                 queue: tauri::State<'_, Queue>) -> Result<(), String> {
     {
         let mut g = shared.lock().map_err(|e| e.to_string())?;
         if let Some(mut c) = g.child.take() {
@@ -160,7 +184,7 @@ fn restart_agent(app: tauri::AppHandle, shared: tauri::State<'_, Shared>) -> Res
         }
         g.stdin = None;
     }
-    spawn_agent(app, shared.inner().clone());
+    spawn_agent(app, shared.inner().clone(), queue.inner().clone());
     Ok(())
 }
 
@@ -172,25 +196,39 @@ fn read_image(path: String) -> Result<String, String> {
     Ok(format!("data:image/png;base64,{b64}"))
 }
 
+/// Drain buffered agent output. The UI polls this so it does not depend on
+/// the event plugin being permitted.
+#[tauri::command]
+fn drain_events(queue: tauri::State<'_, Queue>) -> Vec<String> {
+    match queue.lock() {
+        Ok(mut q) => q.drain(..).collect(),
+        Err(_) => Vec::new(),
+    }
+}
+
 fn main() {
     let shared: Shared = Arc::new(Mutex::new(Agent {
         child: None,
         stdin: None,
     }));
+    let queue: Queue = Arc::new(Mutex::new(VecDeque::new()));
 
     tauri::Builder::default()
         .manage(shared)
+        .manage(queue)
         .invoke_handler(tauri::generate_handler![
             send_command,
             send_confirm,
             send_tool,
             restart_agent,
-            read_image
+            read_image,
+            drain_events
         ])
         .setup(|app| {
             let handle = app.handle().clone();
             let sh = app.state::<Shared>().inner().clone();
-            spawn_agent(handle, sh);
+            let q = app.state::<Queue>().inner().clone();
+            spawn_agent(handle, sh, q);
 
             // diagnostics hook: ROX_SMOKE="prompt" sends one prompt on start
             if let Ok(prompt) = std::env::var("ROX_SMOKE") {
