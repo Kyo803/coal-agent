@@ -1312,6 +1312,12 @@ class Rox:
         return False
 
     def _confirm_prompt(self, prompt):
+        # A UI client (desktop / TUI) can supply a sink so approvals are
+        # answered out-of-band. This matters in --json-repl, where stdin is
+        # the command channel and input() would swallow the next command.
+        sink = getattr(self, "_confirm_sink", None)
+        if sink is not None:
+            return sink(prompt)
         if getattr(self, "_auto_approve", False):
             print(f"\n[rox] auto-approved: {prompt.strip()[:80]}")
             return "y"
@@ -2251,15 +2257,82 @@ def main():
             _llm = {}
         _emit({"t": "ready", "model": _rm, "personality": _pers,
                "llm": _llm})
-        for _line in sys.stdin:
-            _line = _line.strip()
-            if not _line:
-                continue
+        import queue as _queue
+        import threading as _threading
+
+        _inbox = _queue.Queue()
+        _replies = _queue.Queue()
+
+        def _reader():
+            for _ln in sys.stdin:
+                _ln = _ln.strip()
+                if not _ln:
+                    continue
+                try:
+                    _obj = _json.loads(_ln)
+                except Exception:
+                    _emit({"t": "error", "message": "bad json request"})
+                    continue
+                # approvals must bypass the command queue: the main loop is
+                # blocked inside the tool while it waits for this answer
+                if isinstance(_obj, dict) and "confirm" in _obj:
+                    _replies.put(bool(_obj.get("confirm")))
+                else:
+                    _inbox.put(_obj)
+            _inbox.put(None)          # EOF -> stop the loop
+
+        _threading.Thread(target=_reader, daemon=True).start()
+
+        _cid = [0]
+
+        def _confirm_sink(prompt):
+            """Emit a confirm event and block until the client answers.
+
+            Runs on the thread that is executing the tool, while the reader
+            thread keeps draining stdin, so approvals work mid-command.
+            """
+            _cid[0] += 1
+            cid = _cid[0]
+            _emit({"t": "confirm", "id": cid, "prompt": str(prompt)[:800]})
             try:
-                _req = _json.loads(_line)
+                allow = _replies.get(timeout=600)
             except Exception:
-                _emit({"t": "error", "message": "bad json request"})
+                _emit({"t": "confirm-done", "id": cid, "allow": False})
+                return "n"
+            _emit({"t": "confirm-done", "id": cid, "allow": bool(allow)})
+            return "y" if allow else "n"
+
+        r._confirm_sink = _confirm_sink
+
+        while True:
+            _req = _inbox.get()
+            if _req is None:                  # stdin closed
+                break
+
+            # approval reply for a pending tool
+            if "confirm" in _req:
+                _replies.put(bool(_req.get("confirm")))
                 continue
+
+            # direct tool invocation (desktop shell, scripts)
+            if _req.get("tool"):
+                _tn = str(_req.get("tool"))
+                _ta = _req.get("args") or {}
+                _t0 = time.perf_counter()
+                _emit({"t": "start", "prompt": f"{_tn} {_ta}"})
+                try:
+                    _res = r.texec.run(_tn, _ta)
+                    _txt = str(_res.get("output") or "")
+                    _emit({"t": "tool", "name": _tn, "args": _ta,
+                           "output": _txt[:4000]})
+                    _emit({"t": "answer", "text": _txt})
+                    _emit({"t": "done",
+                           "ms": int((time.perf_counter() - _t0) * 1000),
+                           "kind": "tool"})
+                except Exception as _e:
+                    _emit({"t": "error", "message": str(_e)[:600]})
+                continue
+
             _p = (_req.get("prompt") or "").strip()
             if _p.lower() in ("quit", "exit"):
                 break

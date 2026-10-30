@@ -98,18 +98,37 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
     }
 }
 
-#[tauri::command]
-fn send_command(shared: tauri::State<'_, Shared>, text: String) -> Result<(), String> {
+fn write_line(shared: &tauri::State<'_, Shared>, value: serde_json::Value)
+    -> Result<(), String>
+{
     let mut g = shared.lock().map_err(|e| e.to_string())?;
     match g.stdin.as_mut() {
         Some(stdin) => {
-            let payload = serde_json::json!({ "prompt": text });
-            writeln!(stdin, "{payload}").map_err(|e| e.to_string())?;
+            writeln!(stdin, "{value}").map_err(|e| e.to_string())?;
             stdin.flush().map_err(|e| e.to_string())?;
             Ok(())
         }
         None => Err("agent is not running".into()),
     }
+}
+
+#[tauri::command]
+fn send_command(shared: tauri::State<'_, Shared>, text: String) -> Result<(), String> {
+    write_line(&shared, serde_json::json!({ "prompt": text }))
+}
+
+/// Answer a pending tool approval.
+#[tauri::command]
+fn send_confirm(shared: tauri::State<'_, Shared>, allow: bool) -> Result<(), String> {
+    write_line(&shared, serde_json::json!({ "confirm": allow }))
+}
+
+/// Invoke a tool directly (cmd/powershell/file ops) without going through the
+/// model. Approval still goes through the normal confirm flow.
+#[tauri::command]
+fn send_tool(shared: tauri::State<'_, Shared>, tool: String,
+             args: serde_json::Value) -> Result<(), String> {
+    write_line(&shared, serde_json::json!({ "tool": tool, "args": args }))
 }
 
 #[tauri::command]
@@ -143,6 +162,8 @@ fn main() {
         .manage(shared)
         .invoke_handler(tauri::generate_handler![
             send_command,
+            send_confirm,
+            send_tool,
             restart_agent,
             read_image
         ])
