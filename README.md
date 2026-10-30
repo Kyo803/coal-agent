@@ -50,7 +50,9 @@ with a broken design.
 | real timing | `stepper` 646 MHz · `segmux` 655 MHz · `reset_sync` 627 MHz · `cdc_sync` 627 MHz |
 | multi-block chip | `uart_loopback` — 613 cells / 159 FF, **135.9 MHz**, byte in → byte out |
 | catalogue | **44 / 50** designs built, each through the full gate |
-| agent surface | **429 tools**, 22/22 live self-checks (incl. browser control, web search) |
+| chip visibility | **2D floorplan from real nextpnr placement** (one region per module core) · VCD waveforms rendered to PNG and opened in **GTKWave** |
+| security | authorisation-first method KB (235 entries) · SAST incl. C/C++ memory bugs · secret scan · **PE/ELF triage without executing the sample** |
+| agent surface | **434 tools**, 22/22 live self-checks (incl. browser control, web search) |
 | interface | OpenCode-style terminal UI with live thinking and tool trace |
 
 ![composition](submission/assets/composition.png)
