@@ -83,9 +83,21 @@ def _norm_ops(text):
     return t
 
 
+# Hardware-design vocabulary. Requests containing these are never treated as
+# arithmetic, even when they contain numbers ("build a 12-bit counter chip").
+DESIGN_RE = re.compile(
+    r"\b(chip|verilog|systemverilog|vhdl|rtl|fpga|asic|netlist|"
+    r"synthes\w*|flip.?flop|lfsr|uart|spi|i2c|counter|register|"
+    r"decoder|multiplexer|gray|bcd|parity|alu|fsm|clock|gate|"
+    r"silicon|die|pad)\b",
+    re.I)
+
+
 def tool_gate(text):
     """Find first arithmetic span; verify by calculator.
     Returns (handled, result_text). Failure -> labeled estimate."""
+    if DESIGN_RE.search(text or ""):
+        return False, text
     t = _norm_ops(text)
     m = ARITH.search(t)
     if not m:
@@ -95,10 +107,14 @@ def tool_gate(text):
     before = t[start - 1] if start > 0 else ""
     after = t[end] if end < len(t) else ""
     # Ignore digit runs that are part of a path / filename / identifier
-    # (e.g. "...\rocket-20261014-161907.obj") — not real arithmetic.
+    # (e.g. "...\rocket-20261014-161907.obj") - not real arithmetic.
     if before and (before in "\\/._-" or before.isalnum()):
         return False, text
     if after and (after in "\\/._" or after.isalpha()):
+        return False, text
+    # "12-bit", "8-bit", "q4-16" - a hyphen followed by a letter is a
+    # compound word, not subtraction. "12-5" (digit) still counts.
+    if after == "-" and end + 1 < len(t) and t[end + 1].isalpha():
         return False, text
     try:
         v, _ = safe_calc(expr)

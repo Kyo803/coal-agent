@@ -75,8 +75,8 @@ def suite():
           p.can_auto("read_file", spec_tier("read_file")))
     check("write_file needs confirm",
           p.needs_confirm("write_file", spec_tier("write_file")))
-    check("run_command gate-controlled (auto tier)",
-          p.can_auto("run_command", spec_tier("run_command")))
+    check("run_command needs confirm (execution is never silent)",
+          p.needs_confirm("run_command", spec_tier("run_command")))
     check("aws_cli blocked",
           p.blocked("aws_cli", spec_tier("aws_cli")))
     check("web_fetch auto",

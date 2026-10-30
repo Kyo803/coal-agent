@@ -1634,6 +1634,17 @@ def categories_for_trigger(text):
                             "online", "fetch a page", "google", "read this "
                             "article", "news")):
         hits.add("web")
+    # hardware design FIRST: expose the chip flow (chip_build runs the real
+    # lint/sim/synth/formal/PnR gate) so "build a counter chip" does not fall
+    # through to the generic execution tools and try to hand-write files
+    if any(k in t for k in ("chip", "verilog", "rtl", "fpga", "asic",
+                            "vhdl", "systemverilog", "netlist", "synthes",
+                            "circuit", "counter", "flip-flop", "flip flop",
+                            "lfsr", "uart", "spi ", "i2c", "gray code",
+                            "bcd", "silicon", "die map", "gate level",
+                            "logic design", "hardware design",
+                            "hardware module", "7-segment", "seven segment")):
+        hits.add("chip")
     if any(k in t for k in ("search", "find ", "grep", "glob", "symbol",
                             "where is", "look for", "lookup", "function",
                             "in the code")):

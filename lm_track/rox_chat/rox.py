@@ -1438,6 +1438,23 @@ class Rox:
             except Exception:
                 pass
         system = self.personality.system_prompt(extra_context=extra)
+        # hardware-design requests must use the chip flow, not bash + files:
+        # chip_build generates the RTL and runs the REAL verification gate
+        try:
+            from tools.specs import categories_for_trigger as _cats
+            if "chip" in _cats(user_text):
+                system += (
+                    "\n\nHARDWARE NOTE: this is a chip/hardware design "
+                    "request. Call the chip_build tool with the "
+                    "specification and a name. It generates the RTL and "
+                    "runs the REAL verification gate - lint, simulation, "
+                    "synthesis, formal, place & route - and reports "
+                    "PASS/FAIL with area and timing. Do NOT write Verilog "
+                    "by hand, and do NOT use bash or write_file for this. "
+                    "After it passes, use chip_views if the user wants "
+                    "visuals.")
+        except Exception:
+            pass
         # 5. build messages
         if images:
             from vision import build_message
