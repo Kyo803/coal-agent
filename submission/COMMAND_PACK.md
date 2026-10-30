@@ -13,9 +13,10 @@ somewhere unexpected.
 
 **C1 · deterministic block (≈35 s)**
 ```
-build a 4-bit gray to binary converter chip and verify it through the full gate
+build a 4-bit binary to Gray code converter chip and verify it through the full gate
 ```
 Shows `gray4: PASS` with lint / sim / synth / formal / PnR, area and timing.
+(The block is binary→Gray: `gray = bin ^ (bin >> 1)`. Do not call it Gray→binary.)
 
 **C2 · sequential design + floorplan (≈45 s)**
 ```
@@ -67,10 +68,11 @@ Write and run a Python script that prints the first 20 Fibonacci numbers, then s
 
 **S1 · binary triage without execution (≈40 s)**
 ```
-Triage C:\Users\gamel\.coal\work\sec_test\target.exe without executing it: what is it, what strings stand out, and does it contain an unsafe pattern?
+Analyze this binary without executing it: C:\Users\gamel\.coal\work\sec_test\target.exe — what is it, what strings stand out, and does it contain an unsafe pattern?
 ```
 Shows `binary_triage`: sha256, PE sections + entropy, capability indicators,
-and Intel disassembly naming `strcpy`.
+and Intel disassembly naming `strcpy`. (Keep the words "analyze this binary"
+so the security toolset is exposed.)
 
 **S2 · static review (≈30 s)**
 ```
