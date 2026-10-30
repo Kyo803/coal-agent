@@ -31,9 +31,20 @@ func roxDir() string {
 		return d
 	}
 	exe, _ := os.Executable()
-	// desktop/launcher -> ../../lm_track/rox_chat
-	return filepath.Clean(filepath.Join(filepath.Dir(exe), "..", "..",
-		"lm_track", "rox_chat"))
+	base := filepath.Dir(exe)
+	// the launcher may sit in desktop/ or desktop/launcher/ - probe both
+	cands := []string{
+		filepath.Join(base, "..", "..", "lm_track", "rox_chat"),
+		filepath.Join(base, "..", "lm_track", "rox_chat"),
+		filepath.Join(base, "lm_track", "rox_chat"),
+	}
+	for _, c := range cands {
+		c = filepath.Clean(c)
+		if exists(filepath.Join(c, "rox.py")) {
+			return c
+		}
+	}
+	return filepath.Clean(cands[0])
 }
 
 func main() {

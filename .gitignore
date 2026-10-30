@@ -43,3 +43,5 @@ desktop.ini
 desktop/src-tauri/target/
 desktop/launcher/rox-n-launcher.exe
 
+desktop/*.exe
+
