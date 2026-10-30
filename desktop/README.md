@@ -54,11 +54,26 @@ go build -o rox-n-launcher.exe .
 ## Run
 
 ```powershell
-$env:NEBIUS_API_KEY = "..."      # optional; falls back to local
-.\desktop\launcher\rox-n-launcher.exe
+.\desktop\rox-n-launcher.exe
 ```
 
-The launcher verifies Python, finds the agent, and starts the window. If
+No environment variables needed. The launcher resolves the API key from:
+
+1. `NEBIUS_API_KEY` in the environment, or
+2. `%USERPROFILE%\.rox\nebius.key` — one line, no quotes
+
+If a key is found it configures Nebius automatically:
+
+```
+[i] provider : nebius
+[i] endpoint : https://api.studio.nebius.com/v1
+[i] model    : nvidia/nemotron-3-super-120b-a12b
+```
+
+With no key it falls back to the local model and says so.
+
+The launcher also verifies Python, finds the agent directory, and sets
+`ROX_NO_35B=1` so the 19.7 GB model is never loaded. If
 `rox-n-desktop.exe` is not next to it, it looks in
 `src-tauri/target/{debug,release}`.
 

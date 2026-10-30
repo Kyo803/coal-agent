@@ -1,8 +1,13 @@
 // ROX N desktop launcher (Go).
 //
-// Validates the runtime prerequisites and launches the Rust/Tauri shell.
-// Keeping this in Go gives one obvious entry point and a place to fail with a
-// useful message instead of a silent empty window.
+// Resolves the API configuration, validates prerequisites, and launches the
+// Rust/Tauri shell. Running this is all a user needs to do:
+//
+//   rox-n-launcher.exe
+//
+// Key resolution order:
+//   1. NEBIUS_API_KEY in the environment
+//   2. %USERPROFILE%\.rox\nebius.key  (one line, no quotes)
 package main
 
 import (
@@ -11,6 +16,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+)
+
+const (
+	defaultBase  = "https://api.studio.nebius.com/v1"
+	defaultModel = "nvidia/nemotron-3-super-120b-a12b"
 )
 
 func exists(p string) bool {
@@ -23,6 +34,22 @@ func have(cmd string, args ...string) bool {
 	c.Stdout = nil
 	c.Stderr = nil
 	return c.Run() == nil
+}
+
+// readKey looks for the key in the environment, then in ~/.rox/nebius.key.
+func readKey() string {
+	if k := strings.TrimSpace(os.Getenv("NEBIUS_API_KEY")); k != "" {
+		return k
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	b, err := os.ReadFile(filepath.Join(home, ".rox", "nebius.key"))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(b))
 }
 
 // roxDir resolves the Python agent directory.
@@ -53,10 +80,9 @@ func main() {
 
 	exe := filepath.Join(base, "rox-n-desktop.exe")
 	if !exists(exe) {
-		// common build locations
 		for _, cand := range []string{
-			filepath.Join(base, "..", "src-tauri", "target", "debug", "rox-n-desktop.exe"),
 			filepath.Join(base, "..", "src-tauri", "target", "release", "rox-n-desktop.exe"),
+			filepath.Join(base, "..", "src-tauri", "target", "debug", "rox-n-desktop.exe"),
 		} {
 			if exists(cand) {
 				exe = cand
@@ -66,7 +92,7 @@ func main() {
 	}
 	if !exists(exe) {
 		fmt.Println("[!] rox-n-desktop.exe not found.")
-		fmt.Println("    build it:  cd desktop\\src-tauri && cargo build")
+		fmt.Println("    build it:  desktop\\build.cmd")
 		os.Exit(1)
 	}
 
@@ -82,18 +108,36 @@ func main() {
 		os.Exit(1)
 	}
 
-	if os.Getenv("NEBIUS_API_KEY") == "" {
-		fmt.Println("[i] NEBIUS_API_KEY not set - the agent will use the local model.")
+	env := append([]string{}, os.Environ()...)
+	env = append(env, "ROX_NO_35B=1", "ROX_DIR="+dir)
+
+	key := readKey()
+	if key != "" {
+		env = append(env, "NEBIUS_API_KEY="+key)
+		base := os.Getenv("ROX_BASE_URL")
+		if base == "" {
+			base = defaultBase
+			env = append(env, "ROX_BASE_URL="+defaultBase)
+		}
+		model := os.Getenv("ROX_AGENT_MODEL")
+		if model == "" {
+			model = defaultModel
+			env = append(env, "ROX_AGENT_MODEL="+defaultModel)
+		}
+		fmt.Printf("[i] provider : nebius\n")
+		fmt.Printf("[i] endpoint : %s\n", base)
+		fmt.Printf("[i] model    : %s\n", model)
+	} else {
+		fmt.Println("[i] no NEBIUS_API_KEY and no ~/.rox/nebius.key")
+		fmt.Println("    falling back to the local model")
 	}
+
 	fmt.Printf("[i] agent dir: %s\n", dir)
-	fmt.Printf("[i] launching:  %s\n", exe)
+	fmt.Printf("[i] launching: %s\n", exe)
 
 	cmd := exec.Command(exe)
 	cmd.Dir = filepath.Dir(exe)
-	cmd.Env = append(os.Environ(),
-		"ROX_NO_35B=1",
-		"ROX_DIR="+dir,
-	)
+	cmd.Env = env
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
@@ -102,7 +146,6 @@ func main() {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		// keep the console open on a crash so the message is readable
 		fmt.Println("[i] app exited:", err)
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("press enter to close...")
