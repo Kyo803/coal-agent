@@ -48,7 +48,7 @@ Create a personal portfolio website in C:\Users\gamel\.coal\work\demo\portfolio 
 
 **W2 · storefront (≈50 s)**
 ```
-Create a storefront called Nile in C:\Users\gamel\.coal\work\demo\nile using write_file: live search, category chips, product cards with ratings, a slide-out cart with quantity update, and a mock checkout. Then list the directory to confirm.
+Create a storefront called Nile in C:\Users\gamel\.coal\work\demo\nile using write_file: live search, category filters, product cards with ratings, a slide-out cart with quantity update, and a mock checkout. Then list the directory to confirm.
 ```
 
 **W3 · interactive 3D page (≈55 s)**
