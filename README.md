@@ -144,6 +144,8 @@ lm_track/rox_chat/
   rox_tui/            the terminal UI (Go)
   nemotron_bench.py   hosted-model benchmark (the form's numbers)
   tools_selftest.py   429-tool self-test
+desktop/
+  ui/index.html       native desktop client (Rust/Tauri shell + Go launcher)
 docs/
   NEUROMORPHIC.md     the earlier neuromorphic architecture track
 ```

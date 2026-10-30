@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROX N</title>
+<style>
+  :root{
+    --bg:#0b0d13; --panel:#12161f; --panel2:#0f131b; --ink:#e6eaf2;
+    --dim:#8b95a8; --faint:#5c6678; --line:#1f2533;
+    --acc:#5ee6a8; --acc2:#6aa8ff; --warn:#ffb454; --err:#ff6b6b;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Cascadia Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 var(--mono);
+    display:flex;flex-direction:column;overflow:hidden}
+  header{display:flex;align-items:center;gap:14px;padding:10px 16px;
+    border-bottom:1px solid var(--line);background:var(--panel2);flex:0 0 auto}
+  .logo{color:var(--acc);font-weight:700;letter-spacing:.06em}
+  .meta{color:var(--faint);font-size:12px}
+  .meta b{color:var(--dim);font-weight:500}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);
+    display:inline-block;margin-right:6px}
+  .dot.on{background:var(--acc)}
+  .dot.err{background:var(--err)}
+  .spacer{flex:1}
+  .hbtn{background:var(--panel);border:1px solid var(--line);color:var(--dim);
+    padding:5px 10px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px}
+  .hbtn:hover{color:var(--ink);border-color:#2c3446}
+  main{flex:1;display:flex;min-height:0}
+  #transcript{flex:1;overflow-y:auto;padding:18px 20px 24px;min-width:0}
+  #rail{width:280px;flex:0 0 280px;border-left:1px solid var(--line);
+    background:var(--panel2);overflow-y:auto;padding:14px}
+  #rail h3{font-size:11px;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--faint);margin:0 0 10px}
+  .msg{margin:0 0 18px}
+  .role{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);margin-bottom:6px}
+  .user .body{background:var(--panel);border:1px solid var(--line);
+    border-left:3px solid var(--acc2);border-radius:8px;padding:10px 12px;
+    white-space:pre-wrap;word-break:break-word}
+  .asst .body{white-space:pre-wrap;word-break:break-word}
+  .think{border-left:2px solid #2b3244;margin:8px 0;padding:2px 0 2px 12px;
+    color:#7f8aa0;font-style:italic;white-space:pre-wrap;font-size:13px}
+  .think.hidden{display:none}
+  .tool{margin:8px 0;border:1px solid var(--line);border-radius:8px;
+    background:var(--panel2);overflow:hidden}
+  .tool .head{display:flex;gap:10px;align-items:center;padding:7px 11px;
+    cursor:pointer;user-select:none}
+  .tool .nm{color:var(--acc2)}
+  .tool .ar{color:var(--faint);font-size:12px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .tool .out{display:none;border-top:1px solid var(--line);padding:10px 12px;
+    white-space:pre-wrap;word-break:break-word;color:#aab3c5;font-size:12.5px;
+    max-height:340px;overflow:auto;background:#0a0d13}
+  .tool.open .out{display:block}
+  .tool.collapsed-all .out{display:none}
+  .err{color:var(--err)}
+  .composer{flex:0 0 auto;border-top:1px solid var(--line);background:var(--panel2);
+    padding:12px 16px 14px}
+  .row{display:flex;gap:10px;align-items:flex-end}
+  textarea{flex:1;resize:none;background:var(--panel);color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    font:inherit;min-height:46px;max-height:180px;outline:none}
+  textarea:focus{border-color:#33405a}
+  .send{background:var(--acc);color:#06231a;border:none;border-radius:8px;
+    padding:10px 18px;font:inherit;font-weight:700;cursor:pointer}
+  .send:disabled{opacity:.45;cursor:default}
+  .hint{color:var(--faint);font-size:11px;margin-top:7px}
+  .thumb{width:100%;border-radius:8px;border:1px solid var(--line);
+    margin-bottom:10px;cursor:pointer;display:block}
+  .thumb-cap{color:var(--faint);font-size:11px;margin:-6px 0 10px}
+  .quick{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+  .quick button{text-align:left;background:var(--panel);border:1px solid var(--line);
+    color:var(--dim);padding:7px 10px;border-radius:6px;cursor:pointer;
+    font:inherit;font-size:12px}
+  .quick button:hover{color:var(--ink);border-color:#2c3446}
+  .empty{color:var(--faint);text-align:center;margin-top:12vh;line-height:1.9}
+  .empty kbd{background:var(--panel);border:1px solid var(--line);
+    border-radius:4px;padding:1px 6px;color:var(--dim)}
+  .lightbox{position:fixed;inset:0;background:#000c;display:none;
+    align-items:center;justify-content:center;z-index:50;cursor:zoom-out}
+  .lightbox.on{display:flex}
+  .lightbox img{max-width:92vw;max-height:92vh;border-radius:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">ROX N</span>
+  <span class="meta"><span class="dot" id="statusDot"></span>
+    <b id="prov">starting…</b> · <b id="model">—</b></span>
+  <span class="spacer"></span>
+  <button class="hbtn" id="btnThink" title="Ctrl+T">thinking: on</button>
+  <button class="hbtn" id="btnTools" title="Ctrl+O">tools: open</button>
+  <button class="hbtn" id="btnRestart">restart agent</button>
+</header>
+
+<main>
+  <div id="transcript">
+    <div class="empty" id="empty">
+      Describe a chip in English.<br>
+      <span style="color:#3f4859">the model proposes · the tools decide</span>
+    </div>
+  </div>
+
+  <aside id="rail">
+    <h3>Quick actions</h3>
+    <div class="quick">
+      <button data-p="build a 4-bit gray to binary converter chip">build a chip</button>
+      <button data-p="verify the last chip through the full gate">verify last chip</button>
+      <button data-p="Use security_kb to list 3 bug bounty platforms">security knowledge</button>
+      <button data-p="show me the tools you have">list tools</button>
+    </div>
+    <h3>Artifacts</h3>
+    <div id="artifacts"><div class="thumb-cap">PNGs the agent produces appear here.</div></div>
+  </aside>
+</main>
+
+<div class="composer">
+  <div class="row">
+    <textarea id="input" rows="1"
+      placeholder="Ask ROX N…  (Enter to send, Shift+Enter for a newline)"></textarea>
+    <button class="send" id="send">Send</button>
+  </div>
+  <div class="hint">Ctrl+T thinking · Ctrl+O tool output · Ctrl+L clear</div>
+</div>
+
+<div class="lightbox" id="lightbox"><img id="lightImg" alt=""></div>
+
+<script>
+const T = window.__TAURI__;
+const el = (id) => document.getElementById(id);
+const transcript = el('transcript');
+const input = el('input');
+const sendBtn = el('send');
+const artifacts = el('artifacts');
+
+let busy = false;
+let thinkOn = true;
+let toolsOpen = true;
+let cur = null;          // current assistant message container
+let curBody = null;      // current answer body
+let curThink = null;     // current thinking block
+const seenImages = new Set();
+
+function clearEmpty(){ const e = el('empty'); if (e) e.remove(); }
+
+function addUser(text){
+  clearEmpty();
+  const d = document.createElement('div');
+  d.className = 'msg user';
+  d.innerHTML = '<div class="role">you</div><div class="body"></div>';
+  d.querySelector('.body').textContent = text;
+  transcript.appendChild(d);
+  scroll();
+}
+
+function addAssistant(){
+  clearEmpty();
+  const d = document.createElement('div');
+  d.className = 'msg asst';
+  d.innerHTML = '<div class="role">rox n</div>' +
+    '<div class="think hidden"></div><div class="body"></div>';
+  transcript.appendChild(d);
+  cur = d;
+  curThink = d.querySelector('.think');
+  curBody = d.querySelector('.body');
+  return d;
+}
+
+function addTool(name, args, output){
+  clearEmpty();
+  const d = document.createElement('div');
+  d.className = 'tool' + (toolsOpen ? '' : ' collapsed-all');
+  const a = args && Object.keys(args).length
+    ? Object.entries(args).map(([k,v]) =>
+        `${k}=${typeof v === 'string' ? v : JSON.stringify(v)}`).join('  ')
+    : '';
+  d.innerHTML =
+    '<div class="head"><span class="nm"></span><span class="ar"></span>' +
+    '<span style="color:#5c6678">▾</span></div><div class="out"></div>';
+  d.querySelector('.nm').textContent = name || 'tool';
+  d.querySelector('.ar').textContent = a;
+  d.querySelector('.out').textContent = output || '(no output)';
+  d.querySelector('.head').addEventListener('click',
+    () => d.classList.toggle('open'));
+  transcript.appendChild(d);
+  collectImages(output || '');
+  scroll();
+}
+
+function scroll(){
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
+function collectImages(text){
+  // any absolute .png path in tool output becomes a thumbnail
+  const re = /([A-Za-z]:\\[^\s"']+\.png)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const p = m[1];
+    if (seenImages.has(p)) continue;
+    seenImages.add(p);
+    showThumb(p);
+  }
+}
+
+async function showThumb(path){
+  try {
+    const dataUrl = await T.core.invoke('read_image', { path });
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = dataUrl;
+    img.title = path;
+    img.addEventListener('click', () => {
+      el('lightImg').src = dataUrl;
+      el('lightbox').classList.add('on');
+    });
+    const cap = document.createElement('div');
+    cap.className = 'thumb-cap';
+    cap.textContent = path.split(/[\\/]/).pop();
+    artifacts.prepend(cap);
+    artifacts.prepend(img);
+  } catch (e) { /* ignore */ }
+}
+
+function handleEvent(ev){
+  let e;
+  try { e = JSON.parse(ev); } catch { return; }
+  switch (e.t) {
+    case 'ready':
+      if (e.llm) {
+        el('prov').textContent = e.llm.provider || 'local';
+        el('model').textContent = e.llm.model || '—';
+      }
+      el('statusDot').className = 'dot on';
+      break;
+    case 'start':
+      addAssistant();
+      break;
+    case 'thinking':
+      if (!cur) addAssistant();
+      curThink.classList.remove('hidden');
+      if (!thinkOn) curThink.classList.add('hidden');
+      curThink.textContent += e.text || '';
+      scroll();
+      break;
+    case 'token':
+      if (!cur) addAssistant();
+      curBody.textContent += e.text || '';
+      scroll();
+      break;
+    case 'tool':
+      addTool(e.name, e.args, e.output);
+      break;
+    case 'answer':
+      if (!cur) addAssistant();
+      if (e.text) curBody.textContent = e.text;
+      scroll();
+      break;
+    case 'done':
+      busy = false;
+      sendBtn.disabled = false;
+      if (e.ms) {
+        const m = document.createElement('div');
+        m.className = 'meta';
+        m.style.marginTop = '6px';
+        m.textContent = `${(e.ms/1000).toFixed(1)}s` + (e.kind ? ` · ${e.kind}` : '');
+        (cur || transcript).appendChild(m);
+      }
+      cur = curBody = curThink = null;
+      scroll();
+      break;
+    case 'error':
+      busy = false;
+      sendBtn.disabled = false;
+      addTool('error', {}, e.message || 'unknown error');
+      break;
+  }
+}
+
+async function send(){
+  const text = input.value.trim();
+  if (!text || busy) return;
+  busy = true;
+  sendBtn.disabled = true;
+  input.value = '';
+  autosize();
+  addUser(text);
+  try {
+    await T.core.invoke('send_command', { text });
+  } catch (err) {
+    busy = false;
+    sendBtn.disabled = false;
+    addTool('error', {}, String(err));
+  }
+}
+
+function autosize(){
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 180) + 'px';
+}
+
+input.addEventListener('input', autosize);
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+sendBtn.addEventListener('click', send);
+
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key.toLowerCase() === 't') {
+    e.preventDefault(); thinkOn = !thinkOn;
+    el('btnThink').textContent = 'thinking: ' + (thinkOn ? 'on' : 'off');
+    document.querySelectorAll('.think').forEach(n =>
+      n.classList.toggle('hidden', !thinkOn));
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'o') {
+    e.preventDefault(); toolsOpen = !toolsOpen;
+    el('btnTools').textContent = 'tools: ' + (toolsOpen ? 'open' : 'collapsed');
+    document.querySelectorAll('.tool').forEach(n => {
+      n.classList.toggle('collapsed-all', !toolsOpen);
+      if (!toolsOpen) n.classList.remove('open');
+    });
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+    e.preventDefault(); transcript.innerHTML = ''; 
+    cur = curBody = curThink = null;
+  }
+});
+
+el('btnThink').addEventListener('click', () =>
+  document.dispatchEvent(new KeyboardEvent('keydown', {key:'t', ctrlKey:true})));
+el('btnTools').addEventListener('click', () =>
+  document.dispatchEvent(new KeyboardEvent('keydown', {key:'o', ctrlKey:true})));
+el('btnRestart').addEventListener('click', async () => {
+  transcript.innerHTML = '';
+  cur = curBody = curThink = null;
+  el('statusDot').className = 'dot';
+  try { await T.core.invoke('restart_agent'); } catch (e) {}
+});
+
+document.querySelectorAll('.quick button').forEach(b => {
+  b.addEventListener('click', () => { input.value = b.dataset.p; autosize(); input.focus(); });
+});
+
+el('lightbox').addEventListener('click', () => el('lightbox').classList.remove('on'));
+
+if (T) {
+  T.event.listen('agent', (e) => handleEvent(e.payload));
+  T.event.listen('agent-error', (e) => addTool('agent-error', {}, String(e.payload)));
+  T.event.listen('agent-stderr', (e) => {
+    const s = String(e.payload || '');
+    if (/error|traceback|exception/i.test(s)) console.warn('[agent]', s);
+  });
+  T.event.listen('agent-exit', () => {
+    el('statusDot').className = 'dot err';
+    el('prov').textContent = 'agent stopped';
+  });
+  T.core.invoke('send_command', { text: '' }).catch(()=>{});
+} else {
+  el('prov').textContent = 'not running inside Tauri';
+}
+
+window.addEventListener('DOMContentLoaded', () => input.focus());
+</script>
+</body>
+</html>
