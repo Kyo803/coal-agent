@@ -1404,6 +1404,84 @@ class Rox:
             return f"tool {name} failed: {res.get('output')}"
         return res.get("output", "")
 
+    _LEAD_IN = _re.compile(
+        r"^(let me|i'?ll|i will|now i|next,? i|first,? i|here'?s (the )?plan|"
+        r"i'?m going to|starting with|i'?m now)", _re.I)
+
+    def _looks_unfinished(self, text):
+        """True when a reply is a plan/lead-in instead of a result."""
+        t = (text or "").strip()
+        if not t:
+            return True
+        low = t.lower()
+        if "let me know" in low or "anything else" in low:
+            return False
+        if t.endswith(":") or t.endswith("..."):
+            return True
+        # a long answer is finished even if it opens with "I'll ...";
+        # a short opener is not.
+        if len(t) < 240 and self._LEAD_IN.match(low):
+            return True
+        return False
+
+    def _agent_loop(self, messages, tools, r, on_token, intent=None,
+                    max_rounds=6):
+        """Run tool rounds until the model produces a real answer.
+
+        The assistant turn must carry its tool_calls (with ids) and every
+        tool result must carry tool_call_id. Without that the model loses
+        the thread and a turn looks cut off right after a tool call.
+        """
+        trace, answer = [], ""
+        for rnd in range(max_rounds):
+            text, calls, _reason = stream_chat(
+                messages, model=r["model"], base_url=r["base_url"],
+                tools=tools, thinking=r["thinking"], on_token=on_token,
+                on_thinking=self._thinking_cb)
+            text = text or ""
+            calls = [c for c in (calls or []) if c.get("name")]
+            if not calls:
+                if self._looks_unfinished(text) and rnd < max_rounds - 1:
+                    messages.append({"role": "assistant", "content": text})
+                    messages.append({"role": "user", "content":
+                        "Continue from where you stopped and finish the "
+                        "task. Do not restate the plan: do the work and "
+                        "report the result."})
+                    if on_token and text and not text.endswith("\n"):
+                        on_token("\n")
+                    continue
+                answer = text
+                break
+            assistant = {"role": "assistant", "content": text,
+                         "tool_calls": []}
+            prepared = []
+            for i, c in enumerate(calls):
+                args = dict(c.get("arguments") or {})
+                if intent and intent.tool == c.get("name"):
+                    for k, v in intent.args.items():
+                        args.setdefault(k, v)
+                cid = c.get("id") or f"call_{rnd}_{i}"
+                assistant["tool_calls"].append({
+                    "id": cid, "type": "function",
+                    "function": {"name": c["name"],
+                                 "arguments": json.dumps(args)}})
+                prepared.append((cid, c["name"], args))
+            messages.append(assistant)
+            for cid, name, args in prepared:
+                res = self._run_tool(name, args)
+                trace.append((name, args, res))
+                messages.append({"role": "tool", "tool_call_id": cid,
+                                 "name": name, "content": str(res)[:4000]})
+        else:
+            # still calling tools at the last round: ask for a summary
+            messages.append({"role": "user", "content":
+                "Summarise what you did and what the current state is."})
+            text, _, _ = stream_chat(
+                messages, model=r["model"], base_url=r["base_url"],
+                thinking=r["thinking"], on_token=on_token)
+            answer = text or "Done."
+        return answer, trace
+
     # ---- main turn ----
     def respond(self, user_text, images=None, on_token=None):
         t0 = time.perf_counter()
@@ -1442,7 +1520,8 @@ class Rox:
         # chip_build generates the RTL and runs the REAL verification gate
         try:
             from tools.specs import categories_for_trigger as _cats
-            if "chip" in _cats(user_text):
+            _cats_hit = _cats(user_text)
+            if "chip" in _cats_hit:
                 system += (
                     "\n\nHARDWARE NOTE: this is a chip/hardware design "
                     "request. Call the chip_build tool with the "
@@ -1451,8 +1530,23 @@ class Rox:
                     "synthesis, formal, place & route - and reports "
                     "PASS/FAIL with area and timing. Do NOT write Verilog "
                     "by hand, and do NOT use bash or write_file for this. "
-                    "After it passes, use chip_views if the user wants "
-                    "visuals.")
+                    "After it passes: chip_views for block/schematic/die/"
+                    "3D views, chip_layout for the real 2D floorplan with "
+                    "one region per module core, and chip_wave to run the "
+                    "testbench with VCD dumping, render the waveform and "
+                    "open it in GTKWave. Use open_app to launch desktop "
+                    "software (gtkwave, blender, editors) when asked.")
+            if "security" in _cats_hit:
+                system += (
+                    "\n\nSECURITY NOTE: this is a security request. Open with "
+                    "authorisation and scope for any offensive technique, and "
+                    "use security_kb / security_method for reference and "
+                    "method. Never write working malware, ransomware, or a "
+                    "ready-to-fire exploit against a third party; describe, "
+                    "detect and defend instead. For the user's own files use "
+                    "the real local tools: scan_secrets, sast_check, "
+                    "parse_logs, security_kb, and run_command with file / "
+                    "strings / objdump / nm for binary and assembly work.")
         except Exception:
             pass
         # 5. build messages
@@ -1815,48 +1909,12 @@ class Rox:
         # 7c. PROJECT-NEW intent path: ask name (or decide), then create
         elif force_tool == "project_new":
             answer = self._create_project_flow(user_text)
-        # 7d. normal / other-intent path
-        elif force_tool:
-            forced_rounds = 3
-            for _round in range(forced_rounds):
-                text, calls, reason = stream_chat(
-                    messages, model=r["model"], base_url=r["base_url"],
-                    tools=tools, thinking=r["thinking"], on_token=on_token,
-                    on_thinking=self._thinking_cb)
-                last_reason = reason or last_reason
-                if not calls:
-                    answer = text or ""
-                    break
-                messages.append({"role": "assistant",
-                                 "content": text or ""})
-                for c in calls:
-                    args = dict(c.get("arguments") or {})
-                    if intent and intent.tool == c.get("name"):
-                        for k, v in intent.args.items():
-                            args.setdefault(k, v)
-                    res = self._run_tool(c.get("name"), args)
-                    trace.append((c.get("name"), args, res))
-                    messages.append({"role": "tool", "content": res})
+        # 7d. normal / other-intent path: multi-round tool loop that keeps
+        # going until the model actually finishes (ids preserved so the
+        # provider can match results to calls)
         else:
-            for _round in range(4):
-                text, calls, reason = stream_chat(
-                    messages, model=r["model"], base_url=r["base_url"],
-                    tools=tools, thinking=r["thinking"], on_token=on_token,
-                    on_thinking=self._thinking_cb)
-                last_reason = reason or last_reason
-                if not calls:
-                    answer = text or ""
-                    break
-                messages.append({"role": "assistant",
-                                 "content": text or ""})
-                for c in calls:
-                    args = dict(c.get("arguments") or {})
-                    if intent and intent.tool == c.get("name"):
-                        for k, v in intent.args.items():
-                            args.setdefault(k, v)
-                    res = self._run_tool(c.get("name"), args)
-                    trace.append((c.get("name"), args, res))
-                    messages.append({"role": "tool", "content": res})
+            answer, trace = self._agent_loop(messages, tools, r, on_token,
+                                             intent=intent)
         if not answer and trace:
             text, _, _ = stream_chat(messages, model=r["model"],
                                      base_url=r["base_url"],

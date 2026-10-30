@@ -124,20 +124,17 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
                         buf = ""
                     break
             for tc in (delta.get("tool_calls") or []):
+                idx = tc.get("index", 0)
                 fn = tc.get("function") or {}
-                name = fn.get("name")
-                args = fn.get("arguments") or ""
-                # streamed tool calls: name arrives once (first chunk),
-                # subsequent chunks carry only arguments.
-                if tool_calls and not name and tool_calls[-1].get("name"):
-                    tool_calls[-1]["arguments"] += args
-                    continue
-                if not name:
-                    continue  # skip malformed empty-name fragments
-                if not tool_calls or tool_calls[-1]["name"] != name:
-                    tool_calls.append({"name": name, "arguments": args})
-                else:
-                    tool_calls[-1]["arguments"] += args
+                while len(tool_calls) <= idx:
+                    tool_calls.append({"id": None, "name": None,
+                                       "arguments": ""})
+                slot = tool_calls[idx]
+                if tc.get("id"):
+                    slot["id"] = tc["id"]
+                if fn.get("name") and not slot["name"]:
+                    slot["name"] = fn["name"]
+                slot["arguments"] += fn.get("arguments") or ""
     if buf:
         if in_think:                       # unclosed thinking block
             reasoning += buf
@@ -150,19 +147,24 @@ def stream_chat(messages, model=None, base_url=None, tools=None,
 
     # normalize tool call arguments from JSON strings to dicts
     norm = []
-    for tc in tool_calls:
+    for i, tc in enumerate(tool_calls):
+        if not tc.get("name"):
+            continue                      # malformed empty-name fragment
         a = tc.get("arguments")
         if isinstance(a, str):
             try:
                 a = json.loads(a)
             except Exception:
                 a = {}
-        norm.append({"name": tc["name"], "arguments": a or {}})
+        norm.append({"id": tc.get("id") or f"call_{i}",
+                     "name": tc["name"], "arguments": a or {}})
 
     # fallback: raw XML tool calls inside content
     if not norm:
         xml = parse_tool_calls(content)
         if xml:
+            for i, c in enumerate(xml):
+                c["id"] = c.get("id") or f"xml_call_{i}"
             norm = xml
             _, content = split_thinking(content)
 

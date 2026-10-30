@@ -133,6 +133,80 @@ def chip_views(args, ctx):
     return {"ok": ok, "output": "\n".join(lines)}
 
 
+def _resolve_dir_top(args, ctx):
+    """Resolve (dir, top_module, error) for directory-based chip tools."""
+    p = args.get("path")
+    if not p:
+        return None, None, "path required"
+    d = _resolve(p, ctx)
+    if not os.path.isdir(d):
+        return None, None, f"not a directory: {d}"
+    top = args.get("top")
+    if not top:
+        for f in sorted(os.listdir(d)):
+            if f.endswith(".v") and not f.startswith("tb_") \
+                    and not f.startswith("_"):
+                try:
+                    txt = open(os.path.join(d, f), encoding="utf-8",
+                               errors="ignore").read()
+                except Exception:
+                    continue
+                m = re.search(r"\bmodule\s+([A-Za-z_]\w*)", txt)
+                if m:
+                    top = m.group(1)
+                    break
+    if not top:
+        return d, None, "could not determine top module"
+    return d, top, None
+
+
+def chip_wave(args, ctx):
+    """Simulate a verified chip with VCD dumping and render the waveform.
+
+    The VCD comes from the design's own self-checking testbench, so the
+    trace is real simulator output, not a reconstruction.
+    """
+    try:
+        from chipflow import waves
+    except Exception as e:
+        return {"ok": False, "output": f"chipflow unavailable: {e}"}
+    d, top, err = _resolve_dir_top(args, ctx)
+    if err:
+        return {"ok": False, "output": err}
+    res = waves.capture(d, top, tb=args.get("tb"),
+                        open_gui=bool(args.get("open", True)))
+    return {"ok": bool(res.get("ok")), "output": res.get("output", "")}
+
+
+def chip_layout(args, ctx):
+    """Render the 2D floorplan from real nextpnr placement.
+
+    Cells are drawn at their actual X/Y sites and grouped into module
+    regions, so a composed design shows its cores side by side.
+    """
+    try:
+        import chipflow
+        from chipflow import floorplan
+    except Exception as e:
+        return {"ok": False, "output": f"chipflow unavailable: {e}"}
+    d, top, err = _resolve_dir_top(args, ctx)
+    if err:
+        return {"ok": False, "output": err}
+    res = floorplan.render_from_dir(d, top)
+    if not res.get("ok") and "no placement" in str(res.get("output")):
+        # no placement yet: run place & route so the floorplan is real
+        try:
+            from chipflow import pnr as P
+            files = [os.path.join(d, f) for f in sorted(os.listdir(d))
+                     if f.endswith(".v") and not f.startswith("_")
+                     and not f.startswith("tb_")]
+            P.place_and_route(files, d, top)
+        except Exception as e:
+            return {"ok": False, "output": f"place & route failed: {e}"}
+        res = floorplan.render_from_dir(d, top)
+    return {"ok": bool(res.get("ok")), "output": res.get("output", "")}
+
+
 def chip_gate(args, ctx):
     """Run the full gate on an existing directory of Verilog."""
     try:

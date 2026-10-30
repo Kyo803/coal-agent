@@ -155,8 +155,73 @@ def ping(args, ctx):
                 else f"ping -c 4 {host}", ctx)
 
 
+_APP_ALIASES = {
+    "gtkwave": ["gtkwave"],
+    "blender": ["blender"],
+    "explorer": ["explorer.exe"],
+    "files": ["explorer.exe"],
+    "notepad": ["notepad.exe"],
+    "vscode": ["code.cmd", "code"],
+    "code": ["code.cmd", "code"],
+    "chrome": ["chrome.exe"],
+    "edge": ["msedge.exe"],
+    "firefox": ["firefox.exe"],
+    "calc": ["calc.exe"],
+    "paint": ["mspaint.exe"],
+    "taskmgr": ["taskmgr.exe"],
+    "cmd": ["cmd.exe"],
+    "powershell": ["powershell.exe"],
+}
+
+
+def _which_app(name: str, extra=()):
+    import shutil
+    for cand in list(extra) + [name]:
+        p = shutil.which(cand)
+        if p:
+            return p
+    return None
+
+
 def open_app(args, ctx):
-    name = args.get("name", args.get("app", ""))
+    """Launch an application, file, folder, or URL (detached)."""
+    import shutil
+    import subprocess
+    name = str(args.get("name") or args.get("app") or "").strip()
+    if not name:
+        return {"ok": False, "output": "name required"}
+    extra = args.get("args") or []
+    if isinstance(extra, str):
+        extra = [extra]
+    extra = [str(a) for a in extra]
+    cwd = args.get("cwd") or None
+
+    # URLs and existing paths: let the shell association decide
+    if name.lower().startswith(("http://", "https://", "mailto:")) \
+            or os.path.exists(name):
+        try:
+            if cwd:
+                os.startfile(name)
+            else:
+                os.startfile(name)
+            return {"ok": True, "output": f"opened {name}"}
+        except Exception as e:
+            return {"ok": False, "output": f"open failed: {e}"}
+
+    exe = _which_app(name, _APP_ALIASES.get(name.lower(), ()))
+    if not exe and extra:
+        exe = shutil.which(name) or name
+    if exe:
+        try:
+            p = subprocess.Popen(
+                [exe] + extra, cwd=cwd,
+                creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
+            return {"ok": True,
+                    "output": f"launched {os.path.basename(exe)} "
+                              f"(pid {p.pid})" +
+                              (f" {' '.join(extra)}" if extra else "")}
+        except Exception as e:
+            return {"ok": False, "output": f"launch failed: {e}"}
     try:
         os.startfile(name)
         return {"ok": True, "output": f"opened {name}"}

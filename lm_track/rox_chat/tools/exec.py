@@ -126,8 +126,8 @@ def lazy_schemas(text, perms=None, max_tools=30, ensure=None):
     # "chip" leads: a chip-design request must always surface chip_build
     # (the real verification gate) ahead of generic execution/file tools,
     # otherwise the cap can truncate it away entirely.
-    priority = ["chip", "sandbox", "execution", "filesystem", "git", "web",
-                "search",
+    priority = ["chip", "security", "sandbox", "execution", "filesystem",
+                "git", "web", "search",
                 "database", "system", "browser", "orchestration",
                 "output", "monitoring", "project", "knowledge", "learning"]
     ordered = [c for c in priority if c in cats]

@@ -1301,6 +1301,17 @@ SPECS = [
         "diagram, gate-level schematic, die area map, and a 3D die/package "
         "model (GLB/FBX/PNG).",
         {"path": _STR, "top": _STR}, ["path"]),
+    _mk("chip_layout", "chip", CH.chip_layout,
+        "Render the 2D floorplan from the REAL nextpnr placement: every used "
+        "logic cell at its X/Y site, grouped into module core regions "
+        "(a composed design shows its submodules side by side). Runs place "
+        "& route first if placement data is missing.",
+        {"path": _STR, "top": _STR}, ["path"]),
+    _mk("chip_wave", "chip", CH.chip_wave,
+        "Simulate a verified chip with VCD dumping, render a monochrome "
+        "waveform PNG, and open the VCD in GTKWave when it is installed.",
+        {"path": _STR, "top": _STR, "tb": _STR,
+         "open": {"type": "boolean"}}, ["path"]),
     _mk("chip_batch", "chip", CH.chip_batch,
         "Build a whole batch of chips autonomously (default corpus of 50 "
         "designs). action=run|status|stop. Runs detached, resumable, and "
@@ -1444,8 +1455,12 @@ SPECS = [
     _mk("ping", "system", MS.ping, "Ping a host.",
         {"host": _STR}, ["host"]),
     _mk("open_app", "system", MS.open_app,
-        "Open an application.",
-        {"name": _STR}, ["name"], "confirm"),
+        "Launch a desktop application, file, folder, or URL (detached). "
+        "Aliases: gtkwave, blender, notepad, vscode, chrome, edge, calc, "
+        "explorer, cmd, powershell. Pass args for the app (e.g. a .vcd).",
+        {"name": _STR, "args": {"type": "array",
+                                "items": {"type": "string"}},
+         "cwd": _STR}, ["name"], "confirm"),
     _mk("clipboard_read", "system", MS.clipboard_read,
         "Read the clipboard.", {}, []),
     _mk("clipboard_write", "system", MS.clipboard_read,
@@ -1645,6 +1660,24 @@ def categories_for_trigger(text):
                             "logic design", "hardware design",
                             "hardware module", "7-segment", "seven segment")):
         hits.add("chip")
+    # security work: blue-team scanners + the curated reference. Without
+    # this the model never sees security_kb / security_method / sast_check.
+    if any(k in t for k in ("security", "vulnerab", "exploit", "pentest",
+                            "penetration test", "bug bounty", "bug-bounty",
+                            "sqli", "sql injection", "xss", "csrf", "ssrf",
+                            "rce", "malware", "virus", "ransomware",
+                            "phishing", "reverse engineer",
+                            "reverse-engineering", "disassembl", "objdump",
+                            "ghidra", "ida pro", "buffer overflow",
+                            "stack overflow", "privilege escalation",
+                            "hardening", "cve-", "owasp", "ioc",
+                            "forensic", "threat model", "binary analysis",
+                            "shellcode", "attack surface", "brute force",
+                            "hash crack", "assembly", "penetration",
+                            "red team", "blue team", "incident response",
+                            "binary ", "suspicious", "packed", "obfuscated",
+                            "crackme", "debugger")):
+        hits.add("security")
     if any(k in t for k in ("search", "find ", "grep", "glob", "symbol",
                             "where is", "look for", "lookup", "function",
                             "in the code")):

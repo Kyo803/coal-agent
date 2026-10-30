@@ -122,6 +122,24 @@ def main():
         ok(f"{kind}: simulated vs Python model",
            rr["stages"]["sim"].get("ok") is True)
 
+    print("== 11. waveform + 2D floorplan ==")
+    from chipflow import waves, floorplan
+    rep7 = chipflow.build_block("t_wave", "counter8", make_views=False)
+    ok("wave test design passes the gate", rep7["ok"] is True)
+    d7 = os.path.dirname(rep7["path"])
+    top7 = rep7.get("design") or "counter8"
+    w = waves.capture(d7, top7, open_gui=False)
+    ok("VCD produced by the simulator",
+       w.get("ok") and w.get("vcd") and os.path.exists(w["vcd"]))
+    ok("waveform PNG rendered",
+       bool(w.get("png")) and os.path.exists(w["png"]))
+    fp = floorplan.render_from_dir(d7, top7)
+    ok("floorplan rendered from placement",
+       fp.get("ok") and os.path.exists(fp.get("png") or ""))
+    ok("floorplan knows the fabric size",
+       (fp.get("info") or {}).get("cols") == 160
+       and (fp.get("info") or {}).get("rows") == 48)
+
     print("=" * 40)
     print(f"{PASS} passed, {FAIL} failed")
     return FAIL

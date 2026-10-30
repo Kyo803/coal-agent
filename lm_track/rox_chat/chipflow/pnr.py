@@ -90,6 +90,13 @@ def place_and_route(files, cwd, top: str, freq_mhz: float | None = None,
                 "errors": []}
 
     files = core._vfiles(files)
+    # WSL/nextpnr take paths relative to cwd; absolute Windows paths lose
+    # their backslashes when the command is joined into a shell string.
+    files = [os.path.relpath(f, cwd) if os.path.isabs(f) else f
+             for f in files]
+    # synthesis never wants the testbench (initial/@ blocks are not RTL)
+    files = [f for f in files
+             if not os.path.basename(f).startswith("tb_")]
     ys = core.yosys_cmd()
     if not ys:
         return {"stage": "pnr", "ok": False, "errors": ["yosys missing"]}
@@ -111,6 +118,7 @@ def place_and_route(files, cwd, top: str, freq_mhz: float | None = None,
            "--freq", f"{freq:g}",
            "--pcf-allow-unconstrained",
            "--report", repf,
+           "--write", f"_{top}_placed.json",
            "--timing-allow-fail",
            "-q"]
     r = core.run_tool(cmd, cwd, timeout=timeout)
@@ -148,6 +156,9 @@ def place_and_route(files, cwd, top: str, freq_mhz: float | None = None,
         timing_met = achieved >= (constraint if constraint is not None else freq)
     crit = _pick_critical(rep)
     ok = bool(r["ok"]) and bool(rep)
+    placed = os.path.join(cwd, f"_{top}_placed.json")
+    if not os.path.exists(placed):
+        placed = None
     strict = os.environ.get("ROX_PNR_STRICT", "").lower() in ("1", "true", "yes")
     if strict and timing_met is False:
         ok = False
@@ -168,6 +179,7 @@ def place_and_route(files, cwd, top: str, freq_mhz: float | None = None,
         "io_available": io.get("available"),
         "clock_net": clock_net,
         "critical_path": crit,
+        "placed_json": placed,
         "run": r,
         "errors": [] if ok else [r["out"][-2500:]],
     }
