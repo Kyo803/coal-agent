@@ -72,7 +72,7 @@ def main():
         disagree = 1.0 - votes.count(top) / len(votes)
         # Input-side familiarity: mean logprob of the PROMPT tokens under
         # the model (teacher-forced, one forward pass, no generation).
-        # This is the closest black-box analog of ROX S_t: how surprising
+        # This is the closest black-box analog of Coal S_t: how surprising
         # is the *input*, as opposed to how uncertain is the *output*.
         with torch.no_grad():
             logits = model(**enc).logits[0]

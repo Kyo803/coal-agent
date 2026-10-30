@@ -6,13 +6,13 @@ two notches. Cut every wait longer than ~2 seconds.
 ## Before recording
 
 ```powershell
-# one command: reads the key, points at Nebius, sets ROX_NO_35B, starts the TUI
-cd "C:\Users\gamel\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat"
+# one command: reads the key, points at Nebius, sets CoalO_35B, starts the TUI
+cd "C:\Users\gamel\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
 .\demo.cmd
 ```
 
 If the key is not already in the environment, put it in
-`%USERPROFILE%\.rox\nebius.key` (one line, no quotes) and `demo.cmd` will read
+`%USERPROFILE%\.coal\nebius.key` (one line, no quotes) and `demo.cmd` will read
 it. The header should show `nebius · nvidia/nemotron-3-super-120b-a12b`.
 
 Warm the toolchain once so the first gate on camera is not slow:
@@ -21,13 +21,13 @@ Warm the toolchain once so the first gate on camera is not slow:
 py -3.15 -c "import chipflow; chipflow.build_block('warmup','counter',width=8)"
 ```
 
-Open `submission/RESULTS.md` in a second window (or `~/.rox/work/chips/_unique/UNIQUE_CHIPS.md`).
+Open `submission/RESULTS.md` in a second window (or `~/.coal/work/chips/_unique/UNIQUE_CHIPS.md`).
 
 ## Shot list
 
 | t | action | narration |
 |---|---|---|
-| 0:00 | TUI open, header `nebius · Qwen2.5-Coder-32B` | "This is ROX N. It designs chips — and it can prove them." |
+| 0:00 | TUI open, header `nebius · Qwen2.5-Coder-32B` | "This is Coal. It designs chips — and it can prove them." |
 | 0:10 | type `build a UART loopback chip`, hit enter | "I ask in English." |
 | 0:15 | thinking lines stream, then `▶ chip_build` | "It plans, picks blocks, and calls real tools." |
 | 0:25 | gate block appears: lint/sim/synth/formal/pnr ✓“ | "Lint, simulation, synthesis through ABC, formal checks — and place-and-route." |
@@ -39,7 +39,7 @@ Open `submission/RESULTS.md` in a second window (or `~/.rox/work/chips/_unique/U
 | 1:50 | point at a FAIL row (behaviour mismatch) | "One of these had inverted parity. The reference model caught it. The model that wrote it did not." |
 | 2:10 | open `assets/die-map.png` + `assets/package-3d.png` | "Area map and a 3D package, generated from the same netlist." |
 | 2:25 | back to TUI, type `what did the last batch prove?` | "And it can explain its own results." |
-| 2:45 | title card | "Anyone can make a model write Verilog. ROX N makes it prove the chip works — or refuses to call it a chip." |
+| 2:45 | title card | "Anyone can make a model write Verilog. Coal makes it prove the chip works — or refuses to call it a chip." |
 
 ## Commands that must be on screen
 

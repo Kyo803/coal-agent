@@ -13,8 +13,8 @@ import csv
 import os
 import time
 
-from rox_n.config import MVP_DEFAULT
-from rox_n.stream import Streamer
+from coal_n.config import MVP_DEFAULT
+from coal_n.stream import Streamer
 
 
 def read_rapl():
@@ -57,13 +57,13 @@ def main():
     with open(args.out, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["step", "S", "k", "expert", "reeval",
-                    "ms_rox", "ms_den", "label"])
+                    "ms_coal", "ms_den", "label"])
         for i, r in enumerate(rows):
             w.writerow([i, f"{r['S']:.4f}", r["k"], r["expert"],
-                        int(r["reeval"]), f"{r['ms_rox']:.4f}",
+                        int(r["reeval"]), f"{r['ms_coal']:.4f}",
                         f"{r['ms_den']:.4f}", r["label"]])
     print(f"[power] wrote {args.out}; flops_saved={s['flops_saved']:.3f} "
-          f"f1_rox={s.get('f1_rox', 0):.3f}")
+          f"f1_coal={s.get('f1_coal', 0):.3f}")
     if e0 is not None and e1 is not None:
         print(f"[power] RAPL package energy for run: {e1 - e0:.3f} J "
               f"({(e1 - e0) / args.steps * 1e6:.1f} uJ/step)")

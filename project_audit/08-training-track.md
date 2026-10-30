@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is the *other* half of ROX N: an attempt to build a chat model
+This is the *other* half of Coal: an attempt to build a chat model
 **from scratch** on the user's own machine, using custom architectures.
 It is experimental and separate from the shipped 35B runtime.
 
@@ -14,7 +14,7 @@ It is experimental and separate from the shipped 35B runtime.
 
 ## The architecture (`arch.py`, `arch_v2.py`)
 
-`RoxChat` — a custom transformer fusing "surprise-gated" mechanisms:
+`CoalChat` — a custom transformer fusing "surprise-gated" mechanisms:
 - **FOU** (First-Order Uncertainty) — dense FFN + sparsity aux loss
   (train) / hard top-k surprise caches (infer)
 - **EME** (Expert-MoE routing) — top-2 gating + load balance (train) /
@@ -24,7 +24,7 @@ It is experimental and separate from the shipped 35B runtime.
 - Two execution modes (parallel-train vs streaming-infer) bridged by a
   **Stage-0 parity gate** (`stage0.py`, `stage0.json`)
 
-Deliberately excludes `rox_m` emotion mechanisms (never trained, per
+Deliberately excludes `coal_m` emotion mechanisms (never trained, per
 audit).
 
 ## The data factory
@@ -42,12 +42,12 @@ audit).
 
 | Stage | Script | Checkpoints |
 |---|---|---|
-| Pretrain | `train_500m.py --mode pretrain` | `rox_500m/pretrain.pt` |
-| SFT | `train_500m.py --mode sft` | `rox_500m/sft.pt` |
-| Alignment | `train_500m.py --mode align` | `rox_500m/align.pt` |
-| 1B scale | `train_v2.py`, `arch_v2.py` | `rox_brain/` |
+| Pretrain | `train_500m.py --mode pretrain` | `coal_500m/pretrain.pt` |
+| SFT | `train_500m.py --mode sft` | `coal_500m/sft.pt` |
+| Alignment | `train_500m.py --mode align` | `coal_500m/align.pt` |
+| 1B scale | `train_v2.py`, `arch_v2.py` | `coal_brain/` |
 | LoRA SFT | `train_sft.py`, `sft_v2.py` | LoRA-0.46M on 20K pairs |
-| DPO | `train_dpo.py`, `run_online_dpo.py`, `run_kto.py`, `run_orpo.py`, `run_grpo.py` | `rox_dpo/`, `rox_kto/`, `rox_orpo/`, `rox_online_dpo/` |
+| DPO | `train_dpo.py`, `run_online_dpo.py`, `run_kto.py`, `run_orpo.py`, `run_grpo.py` | `coal_dpo/`, `coal_kto/`, `coal_orpo/`, `coal_online_dpo/` |
 | Distill | `run_distill.py`, `run_grpo.py` | from larger checkpoints |
 | Merge/quant | `merge_now.py`, `quantize.py`, `pack_shards.py` | GGUF? (for the 35B this is external) |
 
@@ -56,10 +56,10 @@ Optimizers/techniques: `muon.py`, `lora.py`, `mopd.py`,
 
 ## Key results (documented in `PLAN_500M_1B.md`)
 
-- **SFT status: COMPLETE** — 1000/1000, val 2.576, `rox_brain/` live.
+- **SFT status: COMPLETE** — 1000/1000, val 2.576, `coal_brain/` live.
   LoRA-0.46M on 20K dialogue pairs. Resumed from checkpoints twice
   (25-step chain held). 36-QA: base 0.61 / ours 0.50 (SFT factuality
-  tax); identity fixed (Rox, not SmolLM).
+  tax); identity fixed (Coal, not SmolLM).
 - **Next (documented):** DPO identity/grounding repair, rental-scale run.
 - **A-60B rental package**: `datamix_convo.py`, 12.6h wall on 10×A-H100
   @40% MFU, ~$487 clean; all-in $600-800. Architecture + Stage-0 PASS

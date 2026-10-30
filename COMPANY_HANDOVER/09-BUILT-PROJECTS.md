@@ -1,6 +1,6 @@
-# 09 — BUILT PROJECTS (Desktop\ROX Projects\)
+# 09 — BUILT PROJECTS (Desktop\Coal Projects\)
 
-These are the projects ROX N built **autonomously** (see `01-HOW-IT-WAS-BUILT.md`
+These are the projects Coal built **autonomously** (see `01-HOW-IT-WAS-BUILT.md`
 §6). Two fully verified; two written but not verify-passing (the documented
 35B model ceiling). Plus the two earlier test projects. Per-file notes included.
 
@@ -127,10 +127,10 @@ PIL (dimensions, pixel colors, color variance).
 ## How to reproduce these builds
 
 ```powershell
-cd "...\rox_chat"
-python rox.py --say "build a complete project: <prompt>"
+cd "...\coal_chat"
+python coal.py --say "build a complete project: <prompt>"
 # long-running: run detached via a .bat launcher; then:
-python rox.py --say "finish <name>" --finish <project-name>
+python coal.py --say "finish <name>" --finish <project-name>
 ```
 
 The builder's full capabilities and limitations are documented in

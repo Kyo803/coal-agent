@@ -2,13 +2,13 @@
 
 ## Overview
 
-ROX N is a layered system. Each layer has a single responsibility and a
+Coal is a layered system. Each layer has a single responsibility and a
 well-defined interface:
 
 ```
 Layer 0: Model inference  -> llama.cpp server (OpenAI-compatible API)
-Layer 1: Client           -> streaming.py (SSE), vision.py, rox_backend.py
-Layer 2: Cognition        -> rox.py respond() pipeline
+Layer 1: Client           -> streaming.py (SSE), vision.py, coal_backend.py
+Layer 2: Cognition        -> coal.py respond() pipeline
 Layer 3: Memory           -> memory/ package (SQLite + vectors)
 Layer 4: Action           -> tools/ package (registry, executor, gate)
 Layer 5: Context          -> project/ package (ledger, journal, audit)
@@ -18,7 +18,7 @@ Layer 7: Observability    -> observability.py (JSONL)
 
 ## One turn, from input to answer
 
-The `Rox.respond(user_text)` method is the heart. Every turn follows this
+The `Coal.respond(user_text)` method is the heart. Every turn follows this
 exact order:
 
 ```
@@ -39,7 +39,7 @@ exact order:
 ## Intent-first decision (the key innovation)
 
 Instead of relying on the model to choose tools (which it often skips),
-ROX N **detects the user's purpose first** (`tools/intent.py`), and if
+Coal **detects the user's purpose first** (`tools/intent.py`), and if
 confident, **forces** the exact tool call:
 
 - "make me a snake game" -> force `write_file`
@@ -56,7 +56,7 @@ data fed back to the model for a grounded answer.
 ## The tool loop
 
 For non-forced turns, the model may emit tool calls (OpenAI format,
-normalized by the server). ROX N:
+normalized by the server). Coal:
 
 1. streams until the model returns `tool_calls` or text
 2. appends the assistant message
@@ -72,7 +72,7 @@ priority order: profile → facts → episodic → working tail. This keeps the
 
 ## Image generation (resource swap)
 
-When intent = `generate_image`, ROX N must run a *second* heavy model
+When intent = `generate_image`, Coal must run a *second* heavy model
 (FLUX.2 klein) that won't fit alongside the 35B in 24 GB RAM. So it
 **time-slices**:
 
@@ -93,12 +93,12 @@ server loses nothing.
 
 | Path | Role |
 |---|---|
-| `rox.py` | Unified assistant class + CLI (`Rox`) |
-| `rox_config.py` | Config loader (`cfg`), env overrides |
+| `coal.py` | Unified assistant class + CLI (`Coal`) |
+| `coal_config.py` | Config loader (`cfg`), env overrides |
 | `server_manager.py` | llama.cpp server lifecycle + RAM/VRAM guards |
 | `streaming.py` | SSE streaming client (`stream_chat`) |
-| `rox_template.py` | Chat template + tool XML parsing |
-| `rox_backend.py` | Autodetect/score local model endpoints |
+| `coal_template.py` | Chat template + tool XML parsing |
+| `coal_backend.py` | Autodetect/score local model endpoints |
 | `personality.py` | Adaptive traits + system prompt |
 | `session.py` | Save/resume/export conversations |
 | `vision.py` | Send images to the model (mmproj) |
@@ -121,4 +121,4 @@ server loses nothing.
 - `llama-server.exe` — the 35B brain, port 1234 (Vulkan, `-ngl 8`)
 - `ollama.exe` — embeddings + small fallback models, port 11434 (CPU-only)
 - `sd-cli.exe` — image generation (only during a swap, spawned/stopped)
-- ROX N is a single Python process wrapping all of the above.
+- Coal is a single Python process wrapping all of the above.

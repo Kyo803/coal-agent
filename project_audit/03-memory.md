@@ -2,8 +2,8 @@
 
 ## Purpose
 
-ROX N "remembers everything" across sessions. Memory is five tiers
-(CoALA/MemGPT-inspired), all local, all on disk under `~/.rox/`:
+Coal "remembers everything" across sessions. Memory is five tiers
+(CoALA/MemGPT-inspired), all local, all on disk under `~/.coal/`:
 
 ```
 core      -> profile.json        (always in the prompt)
@@ -94,13 +94,13 @@ priority order and always keeps the working tail. Returns
 
 | Path | Contents |
 |---|---|
-| `~/.rox/memory.db` | SQLite (sessions, messages, facts, entities) |
-| `~/.rox/vectors/` | embedding vectors (`.npy`) + ids |
-| `~/.rox/profile.json` | user profile |
-| `~/.rox/personality.json` | adaptive traits |
-| `~/.rox/sessions/` | session JSON files |
-| `~/.rox/rag/` | RAG document index |
-| `~/.rox/work/` | ROX workspace (created files, generated images) |
-| `~/.rox/projects/` | project ledgers + journals |
+| `~/.coal/memory.db` | SQLite (sessions, messages, facts, entities) |
+| `~/.coal/vectors/` | embedding vectors (`.npy`) + ids |
+| `~/.coal/profile.json` | user profile |
+| `~/.coal/personality.json` | adaptive traits |
+| `~/.coal/sessions/` | session JSON files |
+| `~/.coal/rag/` | RAG document index |
+| `~/.coal/work/` | Coal workspace (created files, generated images) |
+| `~/.coal/projects/` | project ledgers + journals |
 
-Wipe `~/.rox` to reset everything.
+Wipe `~/.coal` to reset everything.

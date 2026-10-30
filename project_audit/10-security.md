@@ -1,6 +1,6 @@
 # 10 — Security Model
 
-ROX N is a local personal assistant with real OS access via tools. The
+Coal is a local personal assistant with real OS access via tools. The
 security model is **defense-in-depth**: the shell gate, the tool
 permission tiers, and the safety lockout are independent layers, so no
 single model judgment failure can do damage.
@@ -68,7 +68,7 @@ The intended deployment posture:
 - Script Block Logging / Transcription for audit
 - Never store cloud credentials in the agent profile
 
-Current state: ROX N itself is a normal Python process; the gates above
+Current state: Coal itself is a normal Python process; the gates above
 are its in-app enforcement. Cloud/DevOps tools are registered but
 Tier-2-disabled and return honest "requires X" — never fake success.
 

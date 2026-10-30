@@ -19,7 +19,7 @@ image into..."). Verified live (portrait → cyberpunk).
 blocks bots). No install needed. Verified live.
 
 ### C. Image understanding input
-Support `python rox.py --ask-image path.png "question"` and dropped
+Support `python coal.py --ask-image path.png "question"` and dropped
 paths so "what's in this image" is easy to use (currently needs a path
 in the message).
 
@@ -35,7 +35,7 @@ in the message).
 - `/api/images/<file>` static
 - CORS enabled; optionally serve a built-in HTML chat page at `/`
 
-The user will build a proper frontend slowly; ROX N just needs the API.
+The user will build a proper frontend slowly; Coal just needs the API.
 
 ### E. Auto-tier image models (RAM-aware)
 Currently one model (FLUX.2 klein 4B). If a swap frees >16 GB, could
@@ -45,23 +45,23 @@ are slower on the RX 570 and 9B is non-commercial. Low priority.
 ## Known gaps / honest limitations
 
 1. **Text rendering in images** — FLUX.2 klein misspells text (menus,
-   logos, infographics). For "logo with words", ROX N's 35B can
+   logos, infographics). For "logo with words", Coal's 35B can
    hand-write SVG/HTML instead — a cleaner path.
 2. **Image gen speed** — 2.5-4 min @ 1024 on the RX 570. A newer GPU or
    `--hires` upscaling would help; `--hires` is slow on this card.
 3. **RAM ceiling** — 24 GB total, 35B working set ~10-15 GB under load.
    Embeddings fall back to TF-IDF when Ollama is squeezed (still 100%
    on memory tests). The swap pauses chat during image gen.
-4. **Single-conversation** — one `Rox` instance = one conversation at a
+4. **Single-conversation** — one `Coal` instance = one conversation at a
    time. Fine for a personal assistant; a web API would let a frontend
    multiplex sessions.
 5. **Model identity** — the 35B says "I am Qwen" (weights); file/code/
-   config/doc traces are all rebranded ROX N. Re-serializing the GGUF
+   config/doc traces are all rebranded Coal. Re-serializing the GGUF
    metadata would fully hide it but risks the 19.7 GB file.
 6. **Training track** — 500M/1B checkpoints are research artifacts, not
    production. Documented in `08-training-track.md`.
 7. **`LOCAL_RUN.md`** — slightly stale (mentions CPU-only + older
-   paths); `ROX_N.md` and this audit are authoritative.
+   paths); `Coal.md` and this audit are authoritative.
 
 ## Recommendations for a company handover
 
@@ -83,7 +83,7 @@ are slower on the RX 570 and 9B is non-commercial. Low priority.
 
 ## Git/repo hygiene notes
 
-- `~/.rox` is runtime data — never commit.
+- `~/.coal` is runtime data — never commit.
 - `ckpt_*.pt` (2.8 GB each), `*.gguf`, image `out\` are not source.
 - Large generated datasets (`data_fresh/`, `bigindex/`, `*.jsonl`)
   should not be in version control.
@@ -91,7 +91,7 @@ are slower on the RX 570 and 9B is non-commercial. Low priority.
 
 ## Final word
 
-ROX N is a complete, local, working personal AI: a real 35B brain with
+Coal is a complete, local, working personal AI: a real 35B brain with
 forever memory, 356 permission-gated tools, project awareness, vision,
 and image generation — all offline, all on one 24 GB machine, with a
 defense-in-depth security model. The audit folder documents every file,

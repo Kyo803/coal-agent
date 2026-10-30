@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ROX N — the AI that proves the chip works</title>
-<meta name="description" content="Describe a chip in English. ROX N writes the RTL, an independent reference model, and refuses to call it finished until lint, simulation, synthesis, formal and place-and-route all agree.">
+<title>Coal — the AI that proves the chip works</title>
+<meta name="description" content="Describe a chip in English. Coal writes the RTL, an independent reference model, and refuses to call it finished until lint, simulation, synthesis, formal and place-and-route all agree.">
 <style>
   :root{
     --bg:#0c0e14; --panel:#141824; --ink:#e8ecf4; --dim:#9aa4b8;
@@ -68,22 +68,22 @@
 
 <header class="wrap">
   <div class="tag">Nebius × NVIDIA · Nemotron + Token Factory</div>
-  <h1>ROX N — the AI that proves the chip works</h1>
-  <p class="lede">Describe a chip in English. ROX N writes the RTL, writes an
+  <h1>Coal — the AI that proves the chip works</h1>
+  <p class="lede">Describe a chip in English. Coal writes the RTL, writes an
   independent reference model of the specification, and refuses to call it
   finished until a real toolchain agrees with both.</p>
 
   <div class="pitch">
     Every “AI writes Verilog” demo has the same hole: the model writes the
     design <em>and</em> the test, so the test agrees with the bug. It looks
-    right and isn’t. ROX N removes the model from the trust path.
+    right and isn’t. Coal removes the model from the trust path.
   </div>
 
   <div class="links">
-    <a class="btn primary" href="https://github.com/Kyo803/rox-n">Repository</a>
-    <a class="btn" href="https://github.com/Kyo803/rox-n/blob/master/submission/RESULTS.md">Results</a>
-    <a class="btn" href="https://github.com/Kyo803/rox-n/blob/master/submission/BENCHMARK.md">Benchmarks</a>
-    <a class="btn" href="https://github.com/Kyo803/rox-n/blob/master/submission/ARCHITECTURE.md">Architecture</a>
+    <a class="btn primary" href="https://github.com/Kyo803/coal-agent">Repository</a>
+    <a class="btn" href="https://github.com/Kyo803/coal-agent/blob/master/submission/RESULTS.md">Results</a>
+    <a class="btn" href="https://github.com/Kyo803/coal-agent/blob/master/submission/BENCHMARK.md">Benchmarks</a>
+    <a class="btn" href="https://github.com/Kyo803/coal-agent/blob/master/submission/ARCHITECTURE.md">Architecture</a>
   </div>
 </header>
 
@@ -108,7 +108,7 @@
     <span>timing</span>
   </div>
   <figure style="margin-top:28px">
-    <img src="img/architecture.png" alt="ROX N architecture">
+    <img src="img/architecture.png" alt="Coal architecture">
     <figcaption>A pass means the design matches the specification — not that it
     matches itself. The testbench is generated, so nobody can edit it into
     agreement with a broken design.</figcaption>
@@ -130,7 +130,7 @@
 
   <figure style="margin-top:32px">
     <img src="img/composition.png" alt="Block composition graph">
-    <figcaption>The UART loopback chip as ROX N sees it: four blocks, eleven
+    <figcaption>The UART loopback chip as Coal sees it: four blocks, eleven
     nets, every connection width-checked before a line of Verilog is
     emitted.</figcaption>
   </figure>
@@ -177,18 +177,18 @@
   <h2>Run it</h2>
 <pre># hosted inference (optional — falls back to local Ollama)
 $env:NEBIUS_API_KEY  = "..."
-$env:ROX_BASE_URL    = "https://api.studio.nebius.com/v1"
-$env:ROX_AGENT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+$env:COAL_BASE_URL    = "https://api.studio.nebius.com/v1"
+$env:COAL_AGENT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
-cd ROX-N\lm_track\rox_chat
+cd Coal\lm_track\coal_chat
 
 # build and verify a chip
 py -3.15 -c "import chipflow; r = chipflow.build('demo', spec='an 8-bit counter'); print(chipflow.summary_text(r))"
 
 # the terminal UI
-rox_tui\rox-tui.exe</pre>
+coal_tui\coal-tui.exe</pre>
   <p style="margin-top:18px;color:var(--dim)">The toolchain runs inside WSL;
-  ROX N detects it and installs <code>iverilog verilator yosys gtkwave
+  Coal detects it and installs <code>iverilog verilator yosys gtkwave
   nextpnr-ice40</code> if missing.</p>
 </section>
 
@@ -203,10 +203,10 @@ rox_tui\rox-tui.exe</pre>
 </section>
 
 <footer class="wrap">
-  <p>“Anyone can make a model write Verilog. ROX N makes it prove the chip
+  <p>“Anyone can make a model write Verilog. Coal makes it prove the chip
   works — or refuses to call it a chip.”</p>
   <p style="margin-top:14px">Apache-2.0 ·
-  <a href="https://github.com/Kyo803/rox-n">github.com/Kyo803/rox-n</a></p>
+  <a href="https://github.com/Kyo803/coal-agent">github.com/Kyo803/coal-agent</a></p>
 </footer>
 
 </body>

@@ -1,13 +1,13 @@
-// ROX N desktop launcher (Go).
+// Coal desktop launcher (Go).
 //
 // Resolves the API configuration, validates prerequisites, and launches the
 // Rust/Tauri shell. Running this is all a user needs to do:
 //
-//   rox-n-launcher.exe
+//   coal-launcher.exe
 //
 // Key resolution order:
 //   1. NEBIUS_API_KEY in the environment
-//   2. %USERPROFILE%\.rox\nebius.key  (one line, no quotes)
+//   2. %USERPROFILE%\.coal\nebius.key  (one line, no quotes)
 package main
 
 import (
@@ -36,7 +36,7 @@ func have(cmd string, args ...string) bool {
 	return c.Run() == nil
 }
 
-// readKey looks for the key in the environment, then in ~/.rox/nebius.key.
+// readKey looks for the key in the environment, then in ~/.coal/nebius.key.
 func readKey() string {
 	if k := strings.TrimSpace(os.Getenv("NEBIUS_API_KEY")); k != "" {
 		return k
@@ -45,29 +45,29 @@ func readKey() string {
 	if err != nil {
 		return ""
 	}
-	b, err := os.ReadFile(filepath.Join(home, ".rox", "nebius.key"))
+	b, err := os.ReadFile(filepath.Join(home, ".coal", "nebius.key"))
 	if err != nil {
 		return ""
 	}
 	return strings.TrimSpace(string(b))
 }
 
-// roxDir resolves the Python agent directory.
-func roxDir() string {
-	if d := os.Getenv("ROX_DIR"); d != "" {
+// coalDir resolves the Python agent directory.
+func coalDir() string {
+	if d := os.Getenv("COAL_DIR"); d != "" {
 		return d
 	}
 	exe, _ := os.Executable()
 	base := filepath.Dir(exe)
 	// the launcher may sit in desktop/ or desktop/launcher/ - probe both
 	cands := []string{
-		filepath.Join(base, "..", "..", "lm_track", "rox_chat"),
-		filepath.Join(base, "..", "lm_track", "rox_chat"),
-		filepath.Join(base, "lm_track", "rox_chat"),
+		filepath.Join(base, "..", "..", "lm_track", "coal_chat"),
+		filepath.Join(base, "..", "lm_track", "coal_chat"),
+		filepath.Join(base, "lm_track", "coal_chat"),
 	}
 	for _, c := range cands {
 		c = filepath.Clean(c)
-		if exists(filepath.Join(c, "rox.py")) {
+		if exists(filepath.Join(c, "coal.py")) {
 			return c
 		}
 	}
@@ -78,11 +78,11 @@ func main() {
 	here, _ := os.Executable()
 	base := filepath.Dir(here)
 
-	exe := filepath.Join(base, "rox-n-desktop.exe")
+	exe := filepath.Join(base, "coal-desktop.exe")
 	if !exists(exe) {
 		for _, cand := range []string{
-			filepath.Join(base, "..", "src-tauri", "target", "release", "rox-n-desktop.exe"),
-			filepath.Join(base, "..", "src-tauri", "target", "debug", "rox-n-desktop.exe"),
+			filepath.Join(base, "..", "src-tauri", "target", "release", "coal-desktop.exe"),
+			filepath.Join(base, "..", "src-tauri", "target", "debug", "coal-desktop.exe"),
 		} {
 			if exists(cand) {
 				exe = cand
@@ -91,15 +91,15 @@ func main() {
 		}
 	}
 	if !exists(exe) {
-		fmt.Println("[!] rox-n-desktop.exe not found.")
+		fmt.Println("[!] coal-desktop.exe not found.")
 		fmt.Println("    build it:  desktop\\build.cmd")
 		os.Exit(1)
 	}
 
-	dir := roxDir()
-	if !exists(filepath.Join(dir, "rox.py")) {
+	dir := coalDir()
+	if !exists(filepath.Join(dir, "coal.py")) {
 		fmt.Printf("[!] agent not found at %s\n", dir)
-		fmt.Println("    set ROX_DIR to the lm_track/rox_chat directory")
+		fmt.Println("    set COAL_DIR to the lm_track/coal_chat directory")
 		os.Exit(1)
 	}
 
@@ -109,26 +109,26 @@ func main() {
 	}
 
 	env := append([]string{}, os.Environ()...)
-	env = append(env, "ROX_NO_35B=1", "ROX_DIR="+dir)
+	env = append(env, "CoalO_35B=1", "COAL_DIR="+dir)
 
 	key := readKey()
 	if key != "" {
 		env = append(env, "NEBIUS_API_KEY="+key)
-		base := os.Getenv("ROX_BASE_URL")
+		base := os.Getenv("COAL_BASE_URL")
 		if base == "" {
 			base = defaultBase
-			env = append(env, "ROX_BASE_URL="+defaultBase)
+			env = append(env, "COAL_BASE_URL="+defaultBase)
 		}
-		model := os.Getenv("ROX_AGENT_MODEL")
+		model := os.Getenv("COAL_AGENT_MODEL")
 		if model == "" {
 			model = defaultModel
-			env = append(env, "ROX_AGENT_MODEL="+defaultModel)
+			env = append(env, "COAL_AGENT_MODEL="+defaultModel)
 		}
 		fmt.Printf("[i] provider : nebius\n")
 		fmt.Printf("[i] endpoint : %s\n", base)
 		fmt.Printf("[i] model    : %s\n", model)
 	} else {
-		fmt.Println("[i] no NEBIUS_API_KEY and no ~/.rox/nebius.key")
+		fmt.Println("[i] no NEBIUS_API_KEY and no ~/.coal/nebius.key")
 		fmt.Println("    falling back to the local model")
 	}
 

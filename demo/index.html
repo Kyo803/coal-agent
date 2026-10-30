@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ROX N — live demo</title>
+<title>Coal — live demo</title>
 <style>
   :root { color-scheme: dark; }
   body { background: #0b0e12; color: #e8eef4; font-family: Consolas, monospace; margin: 0; padding: 16px 20px; }
@@ -28,13 +28,13 @@
 </style>
 </head>
 <body>
-<h1>ROX N — LIVE</h1>
+<h1>Coal — LIVE</h1>
 <div class="sub" id="src">connecting…</div>
 <div class="nums">
   <div class="num"><div class="v good" id="n_saved">–</div><div class="k">FLOPs SAVED vs dense</div></div>
-  <div class="num"><div class="v" id="n_rox">–</div><div class="k">ROX ms / step</div></div>
+  <div class="num"><div class="v" id="n_coal">–</div><div class="k">Coal ms / step</div></div>
   <div class="num"><div class="v dim" id="n_den">–</div><div class="k">DENSE ms / step</div></div>
-  <div class="num"><div class="v" id="n_f1">–</div><div class="k">F1 ROX / DENSE</div></div>
+  <div class="num"><div class="v" id="n_f1">–</div><div class="k">F1 Coal / DENSE</div></div>
 </div>
 <canvas id="c_sig" width="1200" height="150"></canvas>
 <canvas id="c_sur" width="1200" height="150"></canvas>
@@ -88,9 +88,9 @@ async function poll() {
     document.getElementById('src').textContent =
       'source ' + s.source + ' · step ' + s.steps + ' · shared surprise thr ' + s.threshold;
     document.getElementById('n_saved').textContent = (s.flops_saved * 100).toFixed(1) + '%';
-    document.getElementById('n_rox').textContent = s.ms_rox_mean.toFixed(2);
+    document.getElementById('n_coal').textContent = s.ms_coal_mean.toFixed(2);
     document.getElementById('n_den').textContent = s.ms_den_mean.toFixed(2);
-    document.getElementById('n_f1').textContent = s.f1_rox.toFixed(2) + ' / ' + s.f1_den.toFixed(2);
+    document.getElementById('n_f1').textContent = s.f1_coal.toFixed(2) + ' / ' + s.f1_den.toFixed(2);
     trace(document.getElementById('c_sig'), s.sig, s.lbl, {color: '#38bdf8', name: 'ECG (window centre, red = anomaly)'});
     trace(document.getElementById('c_sur'), s.sur, s.lbl, {color: '#4ade80', name: 'SHARED SURPRISE S (yellow = gate threshold)', thr: s.threshold, floor: 0});
     const cells = grid.children;

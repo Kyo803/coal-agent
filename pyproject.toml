@@ -1,5 +1,5 @@
 [project]
-name = "rox-n"
+name = "coal"
 version = "0.2.0"
 description = "Surprise-gated neuromorphic architecture for real-time edge signal intelligence"
 requires-python = ">=3.10"

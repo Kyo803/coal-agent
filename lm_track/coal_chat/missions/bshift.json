@@ -1,0 +1,15 @@
+{
+  "name": "bshift",
+  "title": "Coal-BSHIFT — 16-bit barrel shifter",
+  "stack": "hdl",
+  "description": "Build a 16-bit barrel shifter: dir=0 shift left, dir=1 shift right; arith=1 arithmetic (sign-extend) else logical; sh is the shift amount. Combinational. Testbench prints bshift:PASS.",
+  "context": "Pure combinational. For left shifts fill with 0. Right shift logical fills 0; arithmetic replicates bit15. sh in 0..15. Testbench CHECKs: din=16'h000F, dir=0, arith=0, sh=4 -> 16'h00F0; din=16'h8000, dir=1, arith=1, sh=1 -> 16'hC000; din=16'h8000, dir=1, arith=0, sh=1 -> 16'h4000; din=16'hFFFF, dir=0, sh=8 -> 16'hFF00. print bshift:PASS.",
+  "manifest": [
+    {"path": "bshift.v", "purpose": "16-bit barrel shifter", "ports": "input [15:0] din, input [3:0] sh, input dir, input arith, output reg [15:0] dout", "behavior": "15h0 with dir0 sh4 -> 00F0; 8000 dir1 arith1 sh1 -> C000; 8000 dir1 arith0 sh1 -> 4000; FFFF dir0 sh8 -> FF00. print bshift:PASS if all match."}
+  ],
+  "criteria": [
+    "file:/home/coal/work/bshift/bshift.v",
+    "contains:bshift:PASS",
+    "runs:sh -c \"cd /home/coal/work/bshift && iverilog -g2012 -o /tmp/bshift.out bshift.v tb_bshift.v && vvp /tmp/bshift.out\""
+  ]
+}

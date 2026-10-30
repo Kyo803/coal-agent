@@ -1,4 +1,4 @@
-# ROX N evaluation report (generated, all numbers measured)
+# Coal evaluation report (generated, all numbers measured)
 
 _epochs=2, wall=18s, CPU CPython. Synthetic ECG/IMU/vibration (MIT-BIH if wfdb present)._
 
@@ -18,7 +18,7 @@ _epochs=2, wall=18s, CPU CPython. Synthetic ECG/IMU/vibration (MIT-BIH if wfdb p
 | imu | 0.00e+00 |
 | vibration | 0.00e+00 |
 
-## Edge cases (`python -m rox_n.robustness`)
+## Edge cases (`python -m coal_n.robustness`)
 
 ```json
 {
@@ -65,7 +65,7 @@ _epochs=2, wall=18s, CPU CPython. Synthetic ECG/IMU/vibration (MIT-BIH if wfdb p
 ```json
 {
   "ok": true,
-  "path": "C:\\Users\\WERU1\\OneDrive\\Documents\\Default Project\\ROX-N\\artifacts\\ecg_dense.onnx",
+  "path": "C:\\Users\\WERU1\\OneDrive\\Documents\\Default Project\\Coal\\artifacts\\ecg_dense.onnx",
   "bytes": 38861,
   "numeric_check": "max_abs_diff=7.45e-08"
 }

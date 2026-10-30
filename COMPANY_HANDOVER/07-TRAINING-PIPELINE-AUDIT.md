@@ -10,8 +10,8 @@ GPUs yet (see `gpu/RUNBOOK.md`). This document lists every file in that track.
 
 | File | Purpose |
 |------|---------|
-| `arch.py` (15.4 KB) | ROX-Chat unified architecture (500M/1B track): layer/width/MoE configs, verified programmatically (not by hand). |
-| `arch_v2.py` (16.5 KB) | V2 architecture: modern small-MoE recipe + the ROX-N mechanisms (PLHE/FOU/EME). |
+| `arch.py` (15.4 KB) | Coal-Chat unified architecture (500M/1B track): layer/width/MoE configs, verified programmatically (not by hand). |
+| `arch_v2.py` (16.5 KB) | V2 architecture: modern small-MoE recipe + the Coal mechanisms (PLHE/FOU/EME). |
 | `verify_arch.py` (4.7 KB) | Phase-A gate: architecture v2 must pass before any training code. |
 | `config_v2.py` (3.4 KB) | V2 configs: model tiers + training recipe + data mix. |
 | `stage0.py` (3.2 KB) | Stage-0: prove PLHE/FOU/EME compose and train stably at tiny scale. `stage0.json` = results (PASS). |
@@ -45,7 +45,7 @@ GPUs yet (see `gpu/RUNBOOK.md`). This document lists every file in that track.
 | `sft_train.jsonl` (9.3 MB) | The SFT training set (mined dialogue pairs). |
 | `sft_val.jsonl` (0.5 MB) | The SFT validation set. |
 | `dpo_prefs.jsonl` (119.6 MB) | DPO preference data. |
-| `persona_prefs.json` | Identity/grounding preference pairs (Rox vs roleplay residue). |
+| `persona_prefs.json` | Identity/grounding preference pairs (Coal vs roleplay residue). |
 | `safety_data.py` (5.7 KB) | Safety training data: replaces the hardcoded crisis list with learned examples. |
 | `atp_data.py` (4.3 KB) | ATP data: Adversarial-Training / pushback pairs. |
 | `instruction_augment.py` (4.5 KB) | Instruction pre-training augmentation (InstructLM-style). |
@@ -59,7 +59,7 @@ GPUs yet (see `gpu/RUNBOOK.md`). This document lists every file in that track.
 | File | Purpose |
 |------|---------|
 | `train_500m.py` (11.8 KB) | 500M from-scratch pretrain + SFT + alignment on CPU (resumable). |
-| `train_ddp.py` (3.7 KB) | Rental entry: torchrun DDP/FSDP pretraining for RoxChat-500M on 60B. |
+| `train_ddp.py` (3.7 KB) | Rental entry: torchrun DDP/FSDP pretraining for CoalChat-500M on 60B. |
 | `train_v2.py` (6.7 KB) | V2 trainer: WSD schedule + Muon + two-phase context + FP8/BF16. |
 | `train_sft.py` (6 KB) | SFT on OUR dialogue (`sft_train.jsonl`): LoRA q/v, assistant-masked loss. |
 | `train_dpo.py` (5.9 KB) | DPO alignment on prefs + persona set. |
@@ -72,7 +72,7 @@ GPUs yet (see `gpu/RUNBOOK.md`). This document lists every file in that track.
 | `run_online_dpo.py` (5 KB) | Online Iterative DPO: generate → rank → train → repeat. |
 | `run_orpo.py` (3.3 KB) | ORPO (Odds Ratio Preference Optimization) — SFT + alignment in one loss. |
 | `align_v2.py` (7 KB) | Unified alignment: DPO / KTO / ORPO / GRPO in one script. |
-| `merge_now.py` (1.4 KB) | Merge LoRA adapters from `ckpt_sft.pt` into base → save `rox_brain/`. |
+| `merge_now.py` (1.4 KB) | Merge LoRA adapters from `ckpt_sft.pt` into base → save `coal_brain/`. |
 | `quantize.py` (2.8 KB) | Weight-only int8/int4 quantization for local deployment. |
 | `sentinel_hooks.py` (2 KB) | Wire the risk-invention safeguards (governor, parity, balance-bias) into the v2 training loop. |
 
@@ -92,12 +92,12 @@ GPUs yet (see `gpu/RUNBOOK.md`). This document lists every file in that track.
 
 | Path | Contents |
 |------|----------|
-| `rox_brain/chat_template.jinja`, `rox_brain/config.json`, `rox_brain/generation_config.json`, `rox_brain/model.safetensors` (282 MB), `rox_brain/tokenizer.json`, `rox_brain/tokenizer_config.json` | SFT brain (135M-class) — the chat model SFT output. |
-| `rox_chat/chat_template.jinja`, `rox_chat/config.json`, `rox_chat/generation_config.json`, `rox_chat/model.safetensors`, `rox_chat/tokenizer.json`, `rox_chat/tokenizer_config.json` | Another SFT snapshot, same HF layout. |
-| `rox_kto/chat_template.jinja`, `rox_kto/config.json`, `rox_kto/generation_config.json`, `rox_kto/model.safetensors`, `rox_kto/tokenizer.json`, `rox_kto/tokenizer_config.json` | KTO alignment checkpoint. |
-| `rox_online_dpo/chat_template.jinja`, `rox_online_dpo/config.json`, `rox_online_dpo/generation_config.json`, `rox_online_dpo/model.safetensors`, `rox_online_dpo/tokenizer.json`, `rox_online_dpo/tokenizer_config.json` | Online-DPO alignment checkpoint. |
-| `rox_orpo/chat_template.jinja`, `rox_orpo/config.json`, `rox_orpo/generation_config.json`, `rox_orpo/model.safetensors`, `rox_orpo/tokenizer.json`, `rox_orpo/tokenizer_config.json` | ORPO alignment checkpoint. |
-| `rox_500m/pretrain.pt`, `rox_500m/sft.pt`, `rox_500m/align.pt` | 500M-track checkpoints (~5.66 GB each). |
+| `coal_brain/chat_template.jinja`, `coal_brain/config.json`, `coal_brain/generation_config.json`, `coal_brain/model.safetensors` (282 MB), `coal_brain/tokenizer.json`, `coal_brain/tokenizer_config.json` | SFT brain (135M-class) — the chat model SFT output. |
+| `coal_chat/chat_template.jinja`, `coal_chat/config.json`, `coal_chat/generation_config.json`, `coal_chat/model.safetensors`, `coal_chat/tokenizer.json`, `coal_chat/tokenizer_config.json` | Another SFT snapshot, same HF layout. |
+| `coal_kto/chat_template.jinja`, `coal_kto/config.json`, `coal_kto/generation_config.json`, `coal_kto/model.safetensors`, `coal_kto/tokenizer.json`, `coal_kto/tokenizer_config.json` | KTO alignment checkpoint. |
+| `coal_online_dpo/chat_template.jinja`, `coal_online_dpo/config.json`, `coal_online_dpo/generation_config.json`, `coal_online_dpo/model.safetensors`, `coal_online_dpo/tokenizer.json`, `coal_online_dpo/tokenizer_config.json` | Online-DPO alignment checkpoint. |
+| `coal_orpo/chat_template.jinja`, `coal_orpo/config.json`, `coal_orpo/generation_config.json`, `coal_orpo/model.safetensors`, `coal_orpo/tokenizer.json`, `coal_orpo/tokenizer_config.json` | ORPO alignment checkpoint. |
+| `coal_500m/pretrain.pt`, `coal_500m/sft.pt`, `coal_500m/align.pt` | 500M-track checkpoints (~5.66 GB each). |
 | `ckpt_sft.pt`, `ckpt_dpo.pt`, `ckpt_kto.pt` | Raw training checkpoints (LoRA / full) used by `merge_now.py` and comparison scripts. |
 | `tokenizer_v2/vocab.json`, `tokenizer_v2/merges.txt`, `tokenizer_v2/report.json` | The 50,304-vocab BPE tokenizer + roundtrip report. |
 | `bigindex/passages.jsonl`, `bigindex/index.pkl` | Corpus retrieval index (see `03-…`). |
@@ -107,7 +107,7 @@ GPUs yet (see `gpu/RUNBOOK.md`). This document lists every file in that track.
 | File | Purpose |
 |------|---------|
 | `PLAN_500M_1B.md` | The 500M/1B build plan: costed tokens, stages, mechanism → "fewer side effects" mapping, what stays OUT. |
-| `LOCAL_RUN.md` | Local run guide (talk to ROX N, backends, speed tips). |
+| `LOCAL_RUN.md` | Local run guide (talk to Coal, backends, speed tips). |
 | `gpu/RUNBOOK.md` | Rental runbook (see above). |
 
 ---

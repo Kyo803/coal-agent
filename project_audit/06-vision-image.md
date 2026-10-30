@@ -1,6 +1,6 @@
 # 06 — Vision & Image Generation
 
-ROX N does **both** halves of visual AI locally: it *understands* images
+Coal does **both** halves of visual AI locally: it *understands* images
 and it *generates* images.
 
 ## Image understanding (no swap needed)
@@ -30,7 +30,7 @@ These run on the **already-running 35B** — no resource swap needed.
 the RX 570. Apache-2.0, step-distilled (4 steps, cfg 1.0).
 
 **Backend**: `stable-diffusion.cpp` (`sd-cli.exe`, win-vulkan build)
-at `ROX N\image\`, models at `ROX N\image\models\`:
+at `Coal\image\`, models at `Coal\image\models\`:
 - `flux-2-klein-4b-Q8_0.gguf` (4 GB)
 - `Qwen3-4B-Q4_K_M.gguf` (text encoder, 2.4 GB)
 - `flux2_vae.safetensors` (VAE, 160 MB)

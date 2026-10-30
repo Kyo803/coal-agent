@@ -124,7 +124,7 @@ The testbench is generated. Coverage grows one safe block at a time.
 - **not synthesizable** — logic optimised away, or unsupported constructs
 - **lint/parse** — invalid Verilog (fences, SystemVerilog, mismatched width)
 - **timing** — placed and routed but missed the target frequency
-  (`ROX_PNR_STRICT=1` makes this a hard failure)
+  (`COAL_PNR_STRICT=1` makes this a hard failure)
 
 ## 7. Non-goals
 

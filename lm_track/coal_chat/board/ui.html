@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Coal — Detective Board</title>
+<style>
+  /* flat, solid colors only (no gradients, no images) */
+  :root{
+    --frame:#6b4a2b; --board:#14332c;
+    --paper:#f6f3ea; --ink:#1a1a1a; --muted:#6b6b6b;
+    --string:#d23b3b; --pin:#a81f1f; --ulink:#e08a2b;
+    --panel:#1b1f27; --panel2:#232a35; --line:#2a303a;
+    --txt:#e7eaee; --muted2:#98a0ac; --accent:#2f6bff;
+    --green:#35c26a; --amber:#f2b134; --red:#e05252; --purple:#a06bff;
+    --cyan:#22b8b8; --pink:#d15bbf; --sel:#ffd23f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--board);color:var(--txt);
+       font:14px/1.5 "Segoe UI",system-ui,Arial,sans-serif;height:100vh;
+       display:flex;flex-direction:column;overflow:hidden}
+  header{background:var(--frame);border-bottom:3px solid #4a3218;
+         padding:8px 14px;display:flex;align-items:center;gap:10px;
+         flex:0 0 auto;flex-wrap:wrap}
+  header h1{font-size:15px;margin:0;letter-spacing:.5px;color:#f6f3ea}
+  header .tag{background:var(--string);color:#fff;font-size:11px;
+              padding:2px 8px;border-radius:3px;font-weight:700}
+  .stats{display:flex;gap:6px;flex-wrap:wrap}
+  .stat{background:#4a3218;border:1px solid #3a2712;border-radius:4px;
+        padding:2px 7px;font-size:11px;color:#e8d9c2}
+  .stat b{color:#fff}
+  .spacer{margin-left:auto}
+  .search{background:#4a3218;border:1px solid #3a2712;color:#f6f3ea;
+          border-radius:4px;padding:5px 9px;font-size:12px;outline:none;
+          width:200px}
+  .btn{background:#3a2712;border:1px solid #2a1a0a;color:#f6f3ea;
+       border-radius:4px;padding:5px 9px;font-size:12px;cursor:pointer;
+       white-space:nowrap}
+  .btn:hover{background:#5a3a1e}
+  .btn.on{background:var(--string);border-color:#8f1a1a}
+  .btn:disabled{opacity:.4;cursor:default}
+  #bar{background:#2a1a0a;padding:6px 14px;display:flex;gap:6px;
+       flex-wrap:wrap;align-items:center;border-bottom:1px solid #1a0f05}
+  #bar .lbl{color:#e8d9c2;font-size:11px;text-transform:uppercase;
+            letter-spacing:.6px;margin-right:2px}
+  #bar .sep{width:1px;height:18px;background:#4a3218;margin:0 4px}
+  .swatch{width:16px;height:16px;border-radius:3px;border:1px solid #000;
+          cursor:pointer;display:inline-block}
+  main{flex:1 1 auto;position:relative;overflow:hidden}
+  #board{position:absolute;inset:0;overflow:hidden;background:var(--board);
+         border:14px solid var(--frame);border-radius:6px;cursor:default}
+  #board.panning{cursor:grabbing}
+  #board.linking{cursor:crosshair}
+  #world{position:absolute;top:0;left:0;transform-origin:0 0;width:0;height:0}
+  #strings{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+  .card{position:absolute;width:158px;background:var(--paper);color:var(--ink);
+        border-radius:3px;border:1px solid #cfc7b4;cursor:grab;
+        user-select:none;overflow:hidden}
+  .card .strip{height:6px}
+  .card .body{padding:7px 9px 9px}
+  .card .name{font-weight:700;font-size:13px;line-height:1.25;word-break:break-word}
+  .card .kind{font-size:10px;text-transform:uppercase;letter-spacing:.4px;
+              color:var(--muted);margin-top:2px}
+  .card .sum{font-size:11px;color:#444;margin-top:5px;max-height:46px;overflow:hidden}
+  .card.sel{outline:3px solid var(--sel);outline-offset:1px}
+  .card.locked{opacity:.9}
+  .card .pin{position:absolute;top:-6px;left:50%;margin-left:-6px;width:12px;
+             height:12px;border-radius:50%;background:var(--pin);
+             border:2px solid #6d0f0f;z-index:2}
+  .card .tagchip{position:absolute;top:4px;right:6px;width:10px;height:10px;
+                 border-radius:2px;border:1px solid #000}
+  .card .lock{position:absolute;top:3px;right:20px;font-size:11px}
+  .card.dossier{background:#eef2f7;border-color:#b9c4d2;width:176px}
+  .card.dossier .strip{background:var(--accent)}
+  .note{position:absolute;width:170px;min-height:70px;background:#fff3b0;
+        color:#3a3000;border:1px solid #d9c86a;border-radius:3px;padding:8px 9px;
+        font-size:12px;cursor:grab;user-select:none;white-space:pre-wrap;
+        word-break:break-word}
+  .note.sel{outline:3px solid var(--sel)}
+  .note[contenteditable="true"]{cursor:text}
+  .groupbox{position:absolute;background:#1d4438;border:2px dashed #6fae9c;
+            border-radius:6px;z-index:1}
+  .groupbox .glabel{position:absolute;top:-11px;left:8px;background:#2f6bff;
+                    color:#fff;font-size:11px;padding:1px 7px;border-radius:3px;
+                    cursor:grab;white-space:nowrap}
+  .marquee{position:absolute;border:2px solid var(--sel);background:#ffd23f22;
+           pointer-events:none;z-index:9999}
+  #hint{position:absolute;left:14px;bottom:12px;background:#00000088;
+        color:#dfe6df;font-size:11px;padding:5px 10px;border-radius:4px;
+        pointer-events:none}
+  /* drawer */
+  #drawer{position:absolute;top:0;right:0;width:380px;height:100%;
+          background:var(--panel);border-left:1px solid var(--line);
+          transform:translateX(100%);transition:transform .18s;overflow:auto;
+          z-index:10000}
+  #drawer.open{transform:translateX(0)}
+  #drawer .dh{background:var(--panel2);padding:12px 14px;border-bottom:1px solid var(--line)}
+  #drawer .dh h3{margin:0;font-size:16px}
+  #drawer .dh .m{color:var(--muted2);font-size:12px}
+  #drawer .body{padding:14px}
+  #drawer .x{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted2);font-size:20px}
+  .rel{background:var(--panel2);border-left:3px solid var(--string);padding:6px 10px;
+       margin:5px 0;border-radius:3px;font-size:13px}
+  .chip{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+        border-radius:12px;padding:2px 9px;margin:2px 4px 2px 0;font-size:12px}
+  .prov{background:var(--panel2);border-left:3px solid var(--amber);padding:10px 12px;
+        border-radius:3px;margin:10px 0}
+  .prov .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2);margin-bottom:4px}
+  .prov .think{white-space:pre-wrap;font-size:13px}
+  .prov .out,.prov .usr{font-size:13px;margin-top:8px}
+  .prov .usr{color:var(--muted2)}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted2);margin:14px 0 6px}
+  .empty{color:var(--muted2);padding:20px;text-align:center}
+  .b-project{background:#2f6bff} .b-person{background:#35c26a} .b-tool{background:#f2b134}
+  .b-place{background:#a06bff} .b-concept{background:#5aa9e6} .b-decision{background:#e05252}
+  .b-task{background:#e08a2b} .b-event{background:#d15bbf} .b-org{background:#22b8b8}
+  .b-file{background:#7d8697} .b-other{background:#59606c}
+</style>
+</head>
+<body>
+<header>
+  <span class="tag">Coal</span><h1>Detective Board</h1>
+  <div class="stats" id="stats"></div>
+  <div class="spacer"></div>
+  <input class="search" id="q" placeholder="search..." />
+  <button class="btn" id="zin">+</button><button class="btn" id="zout">−</button>
+  <button class="btn" id="zfit">Fit</button><button class="btn" id="zreset">Reset</button>
+</header>
+<div id="bar">
+  <span class="lbl" id="selinfo">nothing selected</span>
+  <div class="sep"></div>
+  <button class="btn" data-al="l">L</button><button class="btn" data-al="c">C</button>
+  <button class="btn" data-al="r">R</button><button class="btn" data-al="t">T</button>
+  <button class="btn" data-al="m">M</button><button class="btn" data-al="b">B</button>
+  <div class="sep"></div>
+  <button class="btn" data-dist="h">Dist H</button><button class="btn" data-dist="v">Dist V</button>
+  <div class="sep"></div>
+  <button class="btn" id="grp">Group</button><button class="btn" id="ungrp">Ungroup</button>
+  <button class="btn" id="lock">Lock</button>
+  <div class="sep"></div>
+  <span class="lbl">Tag</span>
+  <span class="swatch" data-tag="#e05252" style="background:#e05252"></span>
+  <span class="swatch" data-tag="#f2b134" style="background:#f2b134"></span>
+  <span class="swatch" data-tag="#35c26a" style="background:#35c26a"></span>
+  <span class="swatch" data-tag="#2f6bff" style="background:#2f6bff"></span>
+  <span class="swatch" data-tag="#a06bff" style="background:#a06bff"></span>
+  <span class="swatch" data-tag="#22b8b8" style="background:#22b8b8"></span>
+  <span class="swatch" data-tag="" style="background:#7d8697"></span>
+  <div class="sep"></div>
+  <button class="btn" id="front">Front</button><button class="btn" id="back">Back</button>
+  <button class="btn" id="snap">Snap</button>
+  <button class="btn" id="arrange">Arrange</button>
+  <div class="sep"></div>
+  <button class="btn" id="addnote">+ Note</button>
+  <button class="btn" id="addgrp">+ Group box</button>
+  <button class="btn" id="linkmode">Link</button>
+</div>
+<main>
+  <div id="board">
+    <div id="world">
+      <svg id="strings"></svg>
+    </div>
+    <div id="hint">click=select · ctrl+click=multi · drag empty=marquee · space+drag=pan · wheel=zoom · dbl-click=note · arrows=nudge · G/L/F/B</div>
+  </div>
+  <div id="drawer"><span class="x" id="closeD">&times;</span>
+    <div class="dh" id="dh"></div><div class="body" id="dbody"></div></div>
+</main>
+<script>
+"use strict";
+let DATA={stats:{},nodes:[],dossiers:[],timeline:[]};
+let G={cards:[],edges:[]};
+let SEL=new Set();
+let OV={pos:{},z:{},tag:{},lock:{},groups:[],notes:[],links:[],view:{z:1,tx:0,ty:0}};
+let VIEW=OV.view, zc=1, snap=false, mode="select", spaceDown=false;
+let drag=null, marquee=null, pendingLink=null, dragMoved=false, editing=null, lastSig=null;
+const boardEl=()=>document.getElementById("board");
+const worldEl=()=>document.getElementById("world");
+const KINDCLASS=k=>"b-"+(["project","person","tool","place","concept","decision","task","event","org","file"].includes(k)?k:"other");
+const esc=s=>(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const uid=p=>p+Math.random().toString(36).slice(2,9);
+
+/* ---------- overlay persistence (localStorage) ---------- */
+function saveOV(){ try{localStorage.setItem("roxboard_ov",JSON.stringify(OV));}catch(e){} }
+function loadOV(){ try{const o=JSON.parse(localStorage.getItem("roxboard_ov")||"null");
+  if(o){OV=Object.assign(OV,o); OV.view=o.view||OV.view; VIEW=OV.view;}}catch(e){} }
+
+/* ---------- screen <-> world ---------- */
+function toWorld(clientX,clientY){ const r=boardEl().getBoundingClientRect();
+  return {x:(clientX-r.left-VIEW.tx)/VIEW.z, y:(clientY-r.top-VIEW.ty)/VIEW.z}; }
+function applyView(){ worldEl().style.transform=`translate(${VIEW.tx}px,${VIEW.ty}px) scale(${VIEW.z})`; }
+
+/* ---------- stats ---------- */
+function renderStats(){ const s=DATA.stats;
+  document.getElementById("stats").innerHTML=
+    [["nodes",s.nodes],["edges",s.edges],["conversations",s.dossiers],["events",s.events],["provenance",s.provenance]]
+    .map(([k,v])=>`<span class="stat">${k} <b>${v||0}</b></span>`).join(""); }
+
+/* ---------- build graph from API ---------- */
+function buildGraph(){
+  const cards=[],edges=[],byName={};
+  DATA.nodes.forEach(n=>{ const id="n"+n.id;
+    cards.push({id,type:"node",ref:n,kind:n.kind,name:n.name,summary:n.summary||""});
+    byName[(n.name||"").toLowerCase()]=id; });
+  DATA.dossiers.forEach(d=>{ const id="d"+d.session_id;
+    cards.push({id,type:"dossier",ref:d,kind:"dossier",name:d.title||("case "+d.session_id),summary:d.summary||""});
+    (d.entities||[]).forEach(nm=>{const t=byName[(nm||"").toLowerCase()]; if(t)edges.push([id,t]);}); });
+  DATA.nodes.forEach(n=>{ const a="n"+n.id;
+    (n.neighbors||[]).forEach(nb=>{const t=byName[(nb.name||"").toLowerCase()]; if(t)edges.push([a,t]);}); });
+  const seen=new Set(),E=[];
+  edges.forEach(([a,b])=>{const k=a+"|"+b; if(!seen.has(k)&&a!==b){seen.add(k);E.push([a,b]);}});
+  G={cards,edges:E};
+  // restore positions; place new cards
+  const W=boardEl().clientWidth||1000, H=boardEl().clientHeight||700;
+  const hasSaved=Object.keys(OV.pos).length>0;
+  let fresh=0;
+  G.cards.forEach((c,i)=>{ if(OV.pos[c.id]){c.x=OV.pos[c.id][0];c.y=OV.pos[c.id][1];}
+    else { const a=i*2.399963,r=Math.min(W,H)*0.30*Math.sqrt(i+1)/Math.sqrt(G.cards.length||1);
+      c.x=W/2+Math.cos(a)*r-79; c.y=H/2+Math.sin(a)*r-40; fresh++; } });
+  // only auto-layout on the very first load; never disturb saved positions
+  if(fresh && !hasSaved){ forceLayout();
+    G.cards.forEach(c=>OV.pos[c.id]=[Math.round(c.x),Math.round(c.y)]); saveOV(); }
+  // prune overlay for missing cards
+  const ids=new Set(G.cards.map(c=>c.id));
+  OV.groups.forEach(g=>g.members=g.members.filter(m=>ids.has(m)));
+  OV.groups=OV.groups.filter(g=>g.members.length);
+  OV.links=OV.links.filter(l=>ids.has(l.a)&&ids.has(l.b));
+  SEL=new Set([...SEL].filter(id=>ids.has(id)));
+}
+
+/* ---------- force layout (only fresh cards) ---------- */
+function forceLayout(){
+  const idx={}; G.cards.forEach((c,i)=>idx[c.id]=i);
+  const W=boardEl().clientWidth||1000,H=boardEl().clientHeight||700,k=118;
+  for(let it=0;it<220;it++){
+    G.cards.forEach(c=>{c.fx=0;c.fy=0;});
+    for(let i=0;i<G.cards.length;i++)for(let j=i+1;j<G.cards.length;j++){
+      const a=G.cards[i],b=G.cards[j];
+      let dx=(a.x+79)-(b.x+79),dy=(a.y+40)-(b.y+40),d2=dx*dx+dy*dy+0.01,d=Math.sqrt(d2);
+      const rep=(k*k)/d2,ux=dx/d*rep,uy=dy/d*rep;
+      a.fx+=ux;a.fy+=uy;b.fx-=ux;b.fy-=uy; }
+    G.edges.forEach(([x,y])=>{ const a=G.cards[idx[x]],b=G.cards[idx[y]]; if(!a||!b)return;
+      let dx=(a.x+79)-(b.x+79),dy=(a.y+40)-(b.y+40),d=Math.sqrt(dx*dx+dy*dy)+0.01;
+      const att=(d-k)*0.02,ux=dx/d*att,uy=dy/d*att; a.fx-=ux;a.fy-=uy;b.fx+=ux;b.fy+=uy; });
+    G.cards.forEach(c=>{ c.fx+=((W/2-79)-c.x)*0.004; c.fy+=((H/2-40)-c.y)*0.004;
+      c.x=Math.max(0,Math.min(W-160,c.x+Math.max(-24,Math.min(24,c.fx))));
+      c.y=Math.max(0,Math.min(H-90,c.y+Math.max(-24,Math.min(24,c.fy)))); });
+  }
+}
+
+/* ---------- render ---------- */
+function cardEl(c){
+  const el=document.createElement("div");
+  el.className="card"+(c.type==="dossier"?" dossier":"")+(OV.lock[c.id]?" locked":"")+(SEL.has(c.id)?" sel":"");
+  el.dataset.id=c.id; el.style.left=c.x+"px"; el.style.top=c.y+"px";
+  el.style.zIndex=10+(OV.z[c.id]||0);
+  const tag=OV.tag[c.id]?`<div class="tagchip" style="background:${OV.tag[c.id]}"></div>`:"";
+  const lock=OV.lock[c.id]?`<div class="lock">&#128274;</div>`:"";
+  el.innerHTML=`<div class="pin"></div><div class="strip ${KINDCLASS(c.kind)}"></div>
+    <div class="body"><div class="name">${esc(c.name)}</div>
+    <div class="kind">${esc(c.kind)}</div>
+    ${c.summary?`<div class="sum">${esc(c.summary)}</div>`:""}</div>${tag}${lock}`;
+  el.addEventListener("mousedown",e=>onCardDown(e,c,el));
+  return el;
+}
+function noteEl(n){
+  const el=document.createElement("div");
+  el.className="note"+(SEL.has(n.id)?" sel":""); el.dataset.id=n.id;
+  el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.zIndex=10+(OV.z[n.id]||0);
+  el.textContent=n.text||"";
+  el.addEventListener("mousedown",e=>{ if(el.isContentEditable)return; onCardDown(e,n,el); });
+  el.addEventListener("dblclick",e=>{ e.stopPropagation(); startEdit(el,n); });
+  el.addEventListener("blur",()=>{ if(editing===n.id) stopEdit(el,n); });
+  // persist as the user types; keep global shortcuts out of the note
+  el.addEventListener("input",()=>{ n.text=el.textContent; saveOV(); });
+  el.addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Escape"){e.preventDefault();el.blur();} });
+  el.addEventListener("keypress",e=>e.stopPropagation());
+  return el;
+}
+function startEdit(el,n){ el.contentEditable="true"; editing=n.id; el.focus();
+  try{const r=document.createRange(),s=window.getSelection();
+    r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r);}catch(e){} }
+function stopEdit(el,n){ el.contentEditable="false"; editing=null; n.text=el.textContent; saveOV(); }
+function groupEl(g){
+  const el=document.createElement("div");
+  el.className="groupbox"; el.style.left=g.x+"px"; el.style.top=g.y+"px";
+  el.style.width=g.w+"px"; el.style.height=g.h+"px"; el.style.zIndex=1;
+  el.innerHTML=`<div class="glabel" data-gid="${g.id}">${esc(g.label)}</div>`;
+  el.querySelector(".glabel").addEventListener("mousedown",e=>onGroupDown(e,g));
+  return el;
+}
+function render(){
+  const w=worldEl();
+  [...w.querySelectorAll(".card,.note,.groupbox")].forEach(x=>x.remove());
+  OV.groups.forEach(g=>w.insertBefore(groupEl(g),w.firstChild));
+  G.cards.forEach(c=>w.appendChild(cardEl(c)));
+  OV.notes.forEach(n=>w.appendChild(noteEl(n)));
+  drawStrings(); updateSelInfo();
+}
+function centerOf(id){ const c=G.cards.find(x=>x.id===id)||OV.notes.find(x=>x.id===id);
+  if(!c)return null; const el=worldEl().querySelector(`[data-id="${id}"]`);
+  const w=el?el.offsetWidth:158,h=el?el.offsetHeight:80; return {x:c.x+w/2,y:c.y+h/2}; }
+function drawStrings(){
+  const svg=document.getElementById("strings"); let h="";
+  G.edges.forEach(([a,b])=>{const A=centerOf(a),B=centerOf(b); if(!A||!B)return;
+    h+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#d23b3b" stroke-width="2.5" stroke-linecap="round"/>`;});
+  OV.links.forEach(l=>{const A=centerOf(l.a),B=centerOf(l.b); if(!A||!B)return;
+    h+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#e08a2b" stroke-width="2.5" stroke-dasharray="7 5" stroke-linecap="round"/>`;});
+  G.cards.forEach(c=>{const el=worldEl().querySelector(`[data-id="${c.id}"]`);
+    const w=el?el.offsetWidth:158; h+=`<circle cx="${c.x+w/2}" cy="${c.y}" r="4.5" fill="#a81f1f"/>`;});
+  svg.innerHTML=h;
+}
+function updateSelInfo(){
+  document.getElementById("selinfo").textContent=SEL.size?`${SEL.size} selected`:"nothing selected";
+  document.querySelectorAll("#bar .btn").forEach(b=>b.disabled=false);
+}
+function refreshSelUI(){
+  document.querySelectorAll("[data-id]").forEach(el=>el.classList.toggle("sel",SEL.has(el.dataset.id)));
+  updateSelInfo();
+}
+
+/* ---------- selection & drag ---------- */
+function onCardDown(e,c,el){
+  if(e.button!==0)return;
+  if(mode==="link"){ e.preventDefault(); pickLink(c.id); return; }
+  if(OV.lock[c.id])return;
+  if(e.ctrlKey||e.metaKey){ if(SEL.has(c.id))SEL.delete(c.id); else SEL.add(c.id); refreshSelUI(); e.preventDefault(); return; }
+  if(!SEL.has(c.id)){ SEL=new Set([c.id]); refreshSelUI(); }
+  startDrag(e);
+}
+function onGroupDown(e,g){
+  if(e.button!==0)return;
+  SEL=new Set(g.members.filter(id=>!OV.lock[id])); refreshSelUI(); startDrag(e);
+}
+function startDrag(e){
+  const start=toWorld(e.clientX,e.clientY);
+  const items=[...SEL].map(id=>{const c=G.cards.find(x=>x.id===id)||OV.notes.find(x=>x.id===id);
+    return c?{id,x:c.x,y:c.y}:null;}).filter(Boolean);
+  // include group boxes whose members are all selected
+  const groups=OV.groups.filter(g=>g.members.every(m=>SEL.has(m)))
+    .map(g=>({id:g.id,gx:g.x,gy:g.y}));
+  drag={start,items,groups}; dragMoved=false; boardEl().classList.add("panning");
+  e.preventDefault();
+}
+document.addEventListener("mousemove",e=>{
+  if(drag){ const p=toWorld(e.clientX,e.clientY); const dx=p.x-drag.start.x,dy=p.y-drag.start.y;
+    if(Math.abs(dx)>2||Math.abs(dy)>2)dragMoved=true;
+    drag.items.forEach(it=>{ let nx=it.x+dx,ny=it.y+dy;
+      if(snap){nx=Math.round(nx/20)*20;ny=Math.round(ny/20)*20;}
+      const c=G.cards.find(x=>x.id===it.id)||OV.notes.find(x=>x.id===it.id); if(!c)return;
+      c.x=nx;c.y=ny; const el=worldEl().querySelector(`[data-id="${it.id}"]`); if(el){el.style.left=nx+"px";el.style.top=ny+"px";} });
+    drag.groups.forEach(g0=>{ const g=OV.groups.find(x=>x.id===g0.id);
+      g.x=g0.gx+dx; g.y=g0.gy+dy; const el=worldEl().querySelector(`.glabel[data-gid="${g.id}"]`);
+      if(el){el.parentElement.style.left=g.x+"px";el.parentElement.style.top=g.y+"px";} });
+    drawStrings(); return; }
+  if(marquee){ const r=boardEl().getBoundingClientRect();
+    const x=Math.min(marquee.sx,e.clientX-r.left),y=Math.min(marquee.sy,e.clientY-r.top);
+    const w=Math.abs(e.clientX-r.left-marquee.sx),h=Math.abs(e.clientY-r.top-marquee.sy);
+    Object.assign(marquee.el.style,{left:x+"px",top:y+"px",width:w+"px",height:h+"px"});
+    marquee.w=w;marquee.h=h;marquee.x=x;marquee.y=y; }
+});
+document.addEventListener("mouseup",e=>{
+  if(drag){ drag.items.forEach(it=>{const c=G.cards.find(x=>x.id===it.id)||OV.notes.find(x=>x.id===it.id);
+      if(c)OV.pos[it.id]=[Math.round(c.x),Math.round(c.y)];});
+    saveOV(); drag=null; boardEl().classList.remove("panning"); }
+  if(marquee){ applyMarquee(); marquee.el.remove(); marquee=null; }
+});
+function applyMarquee(){
+  const r=boardEl().getBoundingClientRect();
+  const m={x:marquee.x,y:marquee.y,w:marquee.w,h:marquee.h};
+  G.cards.forEach(c=>{ if(OV.lock[c.id])return; const el=worldEl().querySelector(`[data-id="${c.id}"]`);
+    const w=el?el.offsetWidth:158,h=el?el.offsetHeight:80;
+    const sx=c.x*VIEW.z+VIEW.tx, sy=c.y*VIEW.z+VIEW.ty, sw=w*VIEW.z, sh=h*VIEW.z;
+    if(sx<m.x+m.w&&sx+sw>m.x&&sy<m.y+m.h&&sy+sh>m.y) SEL.add(c.id); });
+  refreshSelUI();
+}
+
+/* empty-board mousedown: pan (space/middle) or marquee */
+boardEl().addEventListener("mousedown",e=>{
+  if(e.target!==boardEl()&&e.target!==worldEl()&&e.target.id!=="strings")return;
+  if(spaceDown||e.button===1){ // pan
+    const sx=e.clientX,sy=e.clientY,tx0=VIEW.tx,ty0=VIEW.ty;
+    boardEl().classList.add("panning");
+    const mv=ev=>{VIEW.tx=tx0+(ev.clientX-sx);VIEW.ty=ty0+(ev.clientY-sy);applyView();};
+    const up=()=>{document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);
+      boardEl().classList.remove("panning");OV.view=VIEW;saveOV();};
+    document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up); e.preventDefault(); return; }
+  if(e.button!==0)return;
+  if(!(e.ctrlKey||e.metaKey)){SEL=new Set();refreshSelUI();}
+  const r=boardEl().getBoundingClientRect();
+  const el=document.createElement("div"); el.className="marquee";
+  boardEl().appendChild(el);
+  marquee={sx:e.clientX-r.left,sy:e.clientY-r.top,el,x:0,y:0,w:0,h:0};
+  e.preventDefault();
+});
+
+/* wheel zoom (cursor-anchored) */
+boardEl().addEventListener("wheel",e=>{
+  e.preventDefault(); const r=boardEl().getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const f=e.deltaY<0?1.12:1/1.12; const nz=Math.max(0.3,Math.min(2.5,VIEW.z*f));
+  VIEW.tx=mx-(mx-VIEW.tx)*(nz/VIEW.z); VIEW.ty=my-(my-VIEW.ty)*(nz/VIEW.z); VIEW.z=nz;
+  applyView(); OV.view=VIEW; saveOV();
+},{passive:false});
+
+/* double-click empty board = new note */
+boardEl().addEventListener("dblclick",e=>{
+  if(e.target!==boardEl()&&e.target!==worldEl()&&e.target.id!=="strings")return;
+  const p=toWorld(e.clientX,e.clientY);
+  const n={id:uid("x"),text:"new note",x:Math.round(p.x),y:Math.round(p.y)};
+  OV.notes.push(n); saveOV(); render();
+});
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown",e=>{
+  const tag=(e.target.tagName||"").toLowerCase();
+  if(editing||e.target.isContentEditable||tag==="input")return;
+  if(e.code==="Space"){spaceDown=true;return;}
+  const nudge=(e.shiftKey?10:1);
+  if(e.key.startsWith("Arrow")&&SEL.size){
+    let dx=0,dy=0; if(e.key==="ArrowLeft")dx=-nudge; if(e.key==="ArrowRight")dx=nudge;
+    if(e.key==="ArrowUp")dy=-nudge; if(e.key==="ArrowDown")dy=nudge;
+    SEL.forEach(id=>{const c=G.cards.find(x=>x.id===id)||OV.notes.find(x=>x.id===id); if(!c)return;
+      c.x+=dx;c.y+=dy;OV.pos[id]=[Math.round(c.x),Math.round(c.y)]; const el=worldEl().querySelector(`[data-id="${id}"]`); if(el){el.style.left=c.x+"px";el.style.top=c.y+"px";}});
+    drawStrings(); saveOV(); e.preventDefault(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"){e.preventDefault();G.cards.forEach(c=>{if(!OV.lock[c.id])SEL.add(c.id);});refreshSelUI();return;}
+  if(e.key==="Escape"){SEL=new Set();refreshSelUI();mode="select";boardEl().classList.remove("linking");pendingLink=null;return;}
+  if(e.key==="Delete"||e.key==="Backspace"){deleteSel();e.preventDefault();return;}
+  const k=e.key.toLowerCase();
+  if(k==="g"){groupSel();} else if(k==="l"){lockSel();} else if(k==="f"){zOrder("front");}
+  else if(k==="b"){zOrder("back");} else if(k==="0"){VIEW={z:1,tx:0,ty:0};applyView();OV.view=VIEW;saveOV();}
+});
+document.addEventListener("keyup",e=>{if(e.code==="Space")spaceDown=false;});
+
+/* ---------- organize ops ---------- */
+function selCards(){return G.cards.filter(c=>SEL.has(c.id)).concat(OV.notes.filter(n=>SEL.has(n.id)));}
+function sizeOf(id){const el=worldEl().querySelector(`[data-id="${id}"]`);
+  return {w:el?el.offsetWidth:158,h:el?el.offsetHeight:80};}
+function moveTo(id,x,y){const c=G.cards.find(z=>z.id===id)||OV.notes.find(z=>z.id===id); if(!c)return;
+  c.x=x;c.y=y;OV.pos[id]=[Math.round(x),Math.round(y)];const el=worldEl().querySelector(`[data-id="${id}"]`); if(el){el.style.left=x+"px";el.style.top=y+"px";}}
+function align(which){
+  const cs=selCards(); if(cs.length<2)return;
+  const box=cs.map(c=>({c,s:sizeOf(c.id)}));
+  if(which==="l"){const m=Math.min(...cs.map(c=>c.x));cs.forEach(c=>moveTo(c.id,m,c.y));}
+  if(which==="r"){const m=Math.max(...box.map(b=>b.c.x+b.s.w));box.forEach(b=>moveTo(b.c.id,m-b.s.w,b.c.y));}
+  if(which==="c"){const m=cs.reduce((a,c)=>a+c.x,0)/cs.length;cs.forEach(c=>moveTo(c.id,m,c.y));}
+  if(which==="t"){const m=Math.min(...cs.map(c=>c.y));cs.forEach(c=>moveTo(c.id,c.x,m));}
+  if(which==="b"){const m=Math.max(...box.map(b=>b.c.y+b.s.h));box.forEach(b=>moveTo(b.c.id,b.c.x,m-b.s.h));}
+  if(which==="m"){const m=cs.reduce((a,c)=>a+c.y,0)/cs.length;cs.forEach(c=>moveTo(c.id,c.x,m));}
+  drawStrings();saveOV();
+}
+function distribute(axis){
+  const cs=selCards(); if(cs.length<3)return;
+  cs.sort((a,b)=>axis==="h"?a.x-b.x:a.y-b.y);
+  const first=cs[0],last=cs[cs.length-1];
+  const span=axis==="h"?(last.x-first.x):(last.y-first.y); const step=span/(cs.length-1);
+  cs.forEach((c,i)=>{ if(axis==="h")moveTo(c.id,first.x+step*i,c.y); else moveTo(c.id,c.x,first.y+step*i); });
+  drawStrings();saveOV();
+}
+function groupSel(){
+  const cs=selCards(); if(cs.length<1)return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  cs.forEach(c=>{const s=sizeOf(c.id);x0=Math.min(x0,c.x);y0=Math.min(y0,c.y);x1=Math.max(x1,c.x+s.w);y1=Math.max(y1,c.y+s.h);});
+  const pad=22; const label=prompt("Group label:","group")||"group";
+  OV.groups.push({id:uid("g"),label,x:x0-pad,y:y0-pad,w:(x1-x0)+pad*2,h:(y1-y0)+pad*2,members:cs.map(c=>c.id)});
+  saveOV();render();
+}
+function ungroup(){
+  const ids=new Set(selCards().map(c=>c.id));
+  OV.groups=OV.groups.filter(g=>!(g.members.some(m=>ids.has(m))));
+  saveOV();render();
+}
+function lockSel(){ const any=selCards().some(c=>OV.lock[c.id]);
+  selCards().forEach(c=>{if(any)delete OV.lock[c.id];else OV.lock[c.id]=true;});
+  saveOV();render(); }
+function zOrder(where){ let base=where==="front"?100:-100;
+  selCards().forEach((c,i)=>{OV.z[c.id]=(OV.z[c.id]||0)+ (where==="front"?1:-1);});
+  saveOV();render(); }
+function deleteSel(){ const nids=new Set(OV.notes.map(n=>n.id));
+  SEL.forEach(id=>{ if(nids.has(id)){OV.notes=OV.notes.filter(n=>n.id!==id);} });
+  OV.groups=OV.groups.filter(g=>!g.members.some(m=>SEL.has(m))||SEL.size<g.members.length);
+  OV.links=OV.links.filter(l=>!SEL.has(l.a)&&!SEL.has(l.b));
+  // derived cards are only hidden, not deleted
+  SEL.forEach(id=>{ if(G.cards.find(c=>c.id===id))OV.hidden=(OV.hidden||{}),OV.hidden[id]=true; });
+  SEL=new Set(); saveOV(); render(); }
+
+/* link mode */
+function pickLink(id){
+  if(!pendingLink){pendingLink=id; return;}
+  if(pendingLink!==id){OV.links.push({a:pendingLink,b:id});saveOV();drawStrings();}
+  pendingLink=null;
+}
+
+/* ---------- toolbar ---------- */
+document.querySelectorAll("[data-al]").forEach(b=>b.onclick=()=>align(b.dataset.al));
+document.querySelectorAll("[data-dist]").forEach(b=>b.onclick=()=>distribute(b.dataset.dist));
+document.querySelectorAll(".swatch").forEach(s=>s.onclick=()=>{
+  selCards().forEach(c=>{const col=s.dataset.tag; if(col)OV.tag[c.id]=col; else delete OV.tag[c.id];});
+  saveOV();render();});
+document.getElementById("grp").onclick=groupSel;
+document.getElementById("ungrp").onclick=ungroup;
+document.getElementById("lock").onclick=lockSel;
+document.getElementById("front").onclick=()=>zOrder("front");
+document.getElementById("back").onclick=()=>zOrder("back");
+document.getElementById("snap").onclick=e=>{snap=!snap;e.target.classList.toggle("on",snap);};
+document.getElementById("arrange").onclick=()=>{
+  const cs=SEL.size?[...SEL]:null;
+  if(cs){ // arrange selection into a grid
+    const list=cs.map(id=>G.cards.find(x=>x.id===id)||OV.notes.find(x=>x.id===id)).filter(Boolean);
+    list.sort((a,b)=>a.y-b.y||a.x-b.x); const cols=Math.ceil(Math.sqrt(list.length));
+    list.forEach((c,i)=>{moveTo(c.id,60+(i%cols)*190,60+Math.floor(i/cols)*130);});
+  } else { forceLayout(); G.cards.forEach(c=>OV.pos[c.id]=[Math.round(c.x),Math.round(c.y)]); }
+  drawStrings();saveOV();
+};
+document.getElementById("addnote").onclick=()=>{
+  const c=boardEl(); const n={id:uid("x"),text:"new note",x:Math.round(toWorld(c.clientWidth/2,c.clientHeight/2).x),y:Math.round(toWorld(c.clientWidth/2,c.clientHeight/2).y)};
+  OV.notes.push(n);saveOV();render();};
+document.getElementById("addgrp").onclick=()=>{
+  const n={id:uid("g"),label:"group",x:80,y:80,w:280,h:200,members:[]};
+  OV.groups.push(n);saveOV();render();};
+document.getElementById("linkmode").onclick=e=>{mode=mode==="link"?"select":"link";
+  e.target.classList.toggle("on",mode==="link");boardEl().classList.toggle("linking",mode==="link");pendingLink=null;};
+document.getElementById("zin").onclick=()=>zoomBy(1.15);
+document.getElementById("zout").onclick=()=>zoomBy(1/1.15);
+document.getElementById("zfit").onclick=fitView;
+document.getElementById("zreset").onclick=()=>{VIEW={z:1,tx:0,ty:0};applyView();OV.view=VIEW;saveOV();};
+function zoomBy(f){const r=boardEl().getBoundingClientRect();const mx=r.width/2,my=r.height/2;
+  const nz=Math.max(0.3,Math.min(2.5,VIEW.z*f));VIEW.tx=mx-(mx-VIEW.tx)*(nz/VIEW.z);VIEW.ty=my-(my-VIEW.ty)*(nz/VIEW.z);VIEW.z=nz;applyView();OV.view=VIEW;saveOV();}
+function fitView(){ const ids=G.cards.map(c=>c.id).concat(OV.notes.map(n=>n.id)); if(!ids.length)return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  ids.forEach(id=>{const c=G.cards.find(z=>z.id===id)||OV.notes.find(z=>z.id===id);const s=sizeOf(id);
+    x0=Math.min(x0,c.x);y0=Math.min(y0,c.y);x1=Math.max(x1,c.x+s.w);y1=Math.max(y1,c.y+s.h);});
+  const r=boardEl().getBoundingClientRect();const pad=60;
+  const z=Math.max(0.3,Math.min(1.4,Math.min((r.width-pad*2)/(x1-x0||1),(r.height-pad*2)/(y1-y0||1))));
+  VIEW.z=z;VIEW.tx=(r.width-(x1-x0)*z)/2-x0*z;VIEW.ty=(r.height-(y1-y0)*z)/2-y0*z;applyView();OV.view=VIEW;saveOV();}
+
+/* search dim */
+document.getElementById("q").addEventListener("input",e=>{const q=e.target.value.toLowerCase();
+  document.querySelectorAll(".card").forEach(el=>{const id=el.dataset.id;const c=G.cards.find(x=>x.id===id);
+    el.style.opacity=(!q||(c&&c.name.toLowerCase().includes(q)))?1:.25;});});
+document.getElementById("closeD").onclick=()=>document.getElementById("drawer").classList.remove("open");
+document.getElementById("drawer").addEventListener("mousedown",e=>e.stopPropagation());
+
+/* ---------- detail drawer ---------- */
+function openCard(c){
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("dh").innerHTML=`<h3>${esc(c.name)}</h3><div class="m">${esc(c.kind)}${c.type==="dossier"?" · session "+c.ref.session_id:""}</div>`;
+  const d=document.getElementById("dbody");
+  if(c.type==="node"){ const rels=(c.ref.neighbors||[]).map(r=>`<div class="rel">${esc(c.name)} <b>${r.dir==="out"?"&rarr;":"&larr;"} ${esc(r.relation)}</b> ${esc(r.name)}</div>`).join("")||'<div class="empty">no relations</div>';
+    d.innerHTML=`${c.summary?`<p>${esc(c.summary)}</p>`:""}<h2>Relations</h2>${rels}`;
+  } else { const dd=c.ref; const chips=a=>(a||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("");
+    const prov=(dd.provenance||[]).map(p=>`<div class="prov"><div class="lbl">what Coal thought <span style="float:right;color:var(--green)">conf ${(p.confidence||0).toFixed(2)}</span></div>
+      <div class="usr">you: ${esc(p.user_text).slice(0,300)}</div><div class="think">${esc(p.thinking).slice(0,1400)||"(no reasoning captured)"}</div>
+      <div class="out">Coal: ${esc(p.output).slice(0,300)}</div></div>`).join("")||'<div class="empty">no provenance</div>';
+    d.innerHTML=`<p>${esc(dd.summary)}</p>${dd.topics.length?`<h2>Topics</h2>${chips(dd.topics)}`:""}${dd.entities.length?`<h2>Entities</h2>${chips(dd.entities)}`:""}${dd.decisions.length?`<h2>Decisions</h2>${chips(dd.decisions)}`:""}${dd.tasks.length?`<h2>Tasks</h2>${chips(dd.tasks)}`:""}${dd.questions.length?`<h2>Open questions</h2>${chips(dd.questions)}`:""}<h2>Reasoning / provenance</h2>${prov}`; }
+}
+/* open drawer on plain click (no drag) */
+document.addEventListener("click",e=>{ if(dragMoved)return; const el=e.target.closest(".card"); if(!el)return;
+  const c=G.cards.find(x=>x.id===el.dataset.id); if(c)openCard(c); });
+
+/* ---------- load / refresh ---------- */
+async function load(){
+  const r=await fetch("/api/board"); const nd=await r.json();
+  DATA=nd; renderStats();
+  const sig=JSON.stringify([nd.stats, nd.nodes.map(n=>n.id), nd.dossiers.map(d=>d.session_id)]);
+  if(editing){ lastSig=sig; return; }   // never wipe the board while a note is being edited
+  if(sig===lastSig) return;             // nothing new -> don't disturb the layout
+  lastSig=sig; buildGraph(); applyView(); render();
+}
+window.addEventListener("resize",()=>{drawStrings();});
+load(); setInterval(load,15000);
+loadOV(); applyView();
+</script>
+</body>
+</html>

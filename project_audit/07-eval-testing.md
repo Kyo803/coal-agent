@@ -55,7 +55,7 @@ Deterministic runners call the real modules (`attachments.tool_gate`,
 
 | Brain | QA factuality | Multi-turn recall |
 |---|---|---|
-| ROX-N-35B-A3B (local) | 100% (8) | 100% (3) |
+| Coal-35B-A3B (local) | 100% (8) | 100% (3) |
 
 ## Full regression (last run)
 

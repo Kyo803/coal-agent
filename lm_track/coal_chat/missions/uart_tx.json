@@ -1,0 +1,15 @@
+{
+  "name": "uart_tx",
+  "title": "Coal-UART — UART transmitter (8N1)",
+  "stack": "hdl",
+  "description": "Build a UART transmitter, 8 data bits, no parity, 1 stop bit, with a baud divider. On send it transmits start(0), 8 data bits LSB-first, stop(1). Testbench prints uart_tx:PASS.",
+  "context": "Parameter CLK_DIV (integer, default 4) sets bit period in clocks. Idle line tx=1. Asserting send (with busy=0) latches data and begins; busy=1 for the frame; tx=0 start, then d0..d7, then 1 stop; busy=0 when complete. Testbench CHECKs: idle tx=1; after send with data=8'h00, tx becomes 0 (start) and busy=1; after the frame completes busy=0 and tx=1. print uart_tx:PASS.",
+  "manifest": [
+    {"path": "uart_tx.v", "purpose": "8N1 UART transmitter with baud divider", "ports": "input clk, input rst, input send, input [7:0] data, output reg tx, output reg busy", "behavior": "idle tx=1; on send busy=1 and tx=0 (start bit) then 8 LSB-first data bits then tx=1 stop and busy=0. print uart_tx:PASS if the start/stop behaviour is observed."}
+  ],
+  "criteria": [
+    "file:/home/coal/work/uart_tx/uart_tx.v",
+    "contains:uart_tx:PASS",
+    "runs:sh -c \"cd /home/coal/work/uart_tx && iverilog -g2012 -o /tmp/uart.out uart_tx.v tb_uart_tx.v && vvp /tmp/uart.out\""
+  ]
+}

@@ -92,7 +92,7 @@ feedback into fixes; Nemotron converted three failures into passes.
 That is the capability this architecture is built to exploit: the gate is not
 just a filter, it is a feedback channel.
 
-Raw report: `~/.rox/work/nemotron_rtl/QWEN_7B_RTL.md`.
+Raw report: `~/.coal/work/nemotron_rtl/QWEN_7B_RTL.md`.
 
 ---
 
@@ -181,4 +181,4 @@ py -3.15 nemotron_rtl_bench.py                    # benchmark 2, one-shot
 py -3.15 nemotron_rtl_bench.py --repairs 2        # benchmark 2, with repair
 ```
 
-Raw outputs: `~/.rox/work/nemotron_bench/` and `~/.rox/work/nemotron_rtl/`.
+Raw outputs: `~/.coal/work/nemotron_bench/` and `~/.coal/work/nemotron_rtl/`.

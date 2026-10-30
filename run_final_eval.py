@@ -17,10 +17,10 @@ for a in sys.argv[1:]:
     if a.startswith("--epochs="):
         epochs = int(a.split("=")[1])
 
-from rox_n.sdk import tune_then_train, RoxN  # noqa: E402
-from rox_n.heads import load_domain  # noqa: E402
-from rox_n import robustness as rob  # noqa: E402
-from rox_n import export as expmod  # noqa: E402
+from coal_n.sdk import tune_then_train, CoalN  # noqa: E402
+from coal_n.heads import load_domain  # noqa: E402
+from coal_n import robustness as rob  # noqa: E402
+from coal_n import export as expmod  # noqa: E402
 
 t0 = time.time()
 domains, artifacts = {}, {}
@@ -28,13 +28,13 @@ for dom in ("ecg", "imu", "vibration"):
     det, info = tune_then_train(dom)
     domains[dom] = {"tuned": info["tuned"], "val": info["val"],
                     "final_thr": round(det.streamer.fou.eff_threshold(), 3)}
-    ap = os.path.join(HERE, "artifacts", f"{dom}_final.roxn")
+    ap = os.path.join(HERE, "artifacts", f"{dom}_final.coaln")
     os.makedirs(os.path.join(HERE, "artifacts"), exist_ok=True)
     det.save(ap)
     # roundtrip: reload + compare logits on 64 windows
     X, _, _ = load_domain(dom)
     r1, _ = det.predict_stream(X[:64])
-    r2, _ = RoxN.load(ap).predict_stream(X[:64])
+    r2, _ = CoalN.load(ap).predict_stream(X[:64])
     import numpy as np
     artifacts[dom] = {"path": ap,
                       "roundtrip_max_diff": float(np.abs(r1 - r2).max())}
@@ -42,12 +42,12 @@ for dom in ("ecg", "imu", "vibration"):
           f"thr={domains[dom]['final_thr']}")
 
 edge = {k: v for k, v in rob.main().items()}
-ecg_det = RoxN.load(os.path.join(HERE, "artifacts", "ecg_final.roxn"))
+ecg_det = CoalN.load(os.path.join(HERE, "artifacts", "ecg_final.coaln"))
 qb = expmod.quant_bench(ecg_det.streamer)
 onnx = expmod.to_onnx(ecg_det.streamer,
                        os.path.join(HERE, "artifacts", "ecg_dense.onnx"))
 
-lines = ["# ROX N evaluation report (generated, all numbers measured)",
+lines = ["# Coal evaluation report (generated, all numbers measured)",
          "", f"_epochs={epochs}, wall={time.time()-t0:.0f}s, "
          "CPU CPython. Synthetic ECG/IMU/vibration (MIT-BIH if wfdb present)._",
          "", "## Per-deployment results (tune shape → train → validate)",
@@ -62,7 +62,7 @@ lines += ["", "## Artifact roundtrips (save → load → predict)",
           "|---|---|"]
 for dom, a in artifacts.items():
     lines.append(f"| {dom} | {a['roundtrip_max_diff']:.2e} |")
-lines += ["", "## Edge cases (`python -m rox_n.robustness`)",
+lines += ["", "## Edge cases (`python -m coal_n.robustness`)",
           "", "```json", json.dumps(edge, indent=2), "```",
           "", "## Quantisation bench, dense twin (CPU, dynamic int8)",
           "", "```json", json.dumps(qb, indent=2), "```",

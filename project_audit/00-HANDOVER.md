@@ -1,11 +1,11 @@
-# ROX N — Project Audit & Handover
+# Coal — Project Audit & Handover
 
 _Generated 2026-09-30. Complete engineering audit for team onboarding,
 maintenance, and continued development._
 
-## What ROX N is
+## What Coal is
 
-ROX N is a **fully-local personal AI assistant**. A real 35B-class
+Coal is a **fully-local personal AI assistant**. A real 35B-class
 Mixture-of-Experts language model ("the brain") runs entirely on the
 user's machine via llama.cpp, wrapped in a rich body: persistent memory,
 adaptive personality, sessions, document RAG, project awareness
@@ -14,14 +14,14 @@ vision (image understanding), and local image generation (FLUX.2 klein 4B)
 with automatic resource switching.
 
 **No cloud. Nothing leaves the machine.** Everything is on-disk under the
-install dir and `~/.rox`.
+install dir and `~/.coal`.
 
 ## The two halves of the codebase
 
 | Half | Location | Purpose |
 |---|---|---|
-| **Runtime assistant** | `lm_track/rox_chat/` | The production assistant: model server, memory, tools, chat, image gen |
-| **Training/experimental** | `lm_track/rox_chat/` (train_*, sft*, dpo*, etc.) | From-scratch model training experiments (500M-1B track) |
+| **Runtime assistant** | `lm_track/coal_chat/` | The production assistant: model server, memory, tools, chat, image gen |
+| **Training/experimental** | `lm_track/coal_chat/` (train_*, sft*, dpo*, etc.) | From-scratch model training experiments (500M-1B track) |
 
 This audit focuses primarily on the **runtime assistant**, which is the
 shipped, working system. The training files are documented in
@@ -29,7 +29,7 @@ shipped, working system. The training files are documented in
 
 ## The core idea (one sentence)
 
-The 35B brain interprets user intent, ROX N's body executes it —
+The 35B brain interprets user intent, Coal's body executes it —
 memory so it never forgets, tools so it can act, project awareness so it
 never hallucinates about code, and resource-switching so it can even
 generate images on a 24GB RAM + 8GB VRAM machine.
@@ -54,18 +54,18 @@ generate images on a 24GB RAM + 8GB VRAM machine.
 ## Quick start
 
 ```powershell
-cd "C:\Users\WERU1\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat"
+cd "C:\Users\WERU1\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
 python install.py --check     # verify install
-python rox.py                 # interactive chat (auto-starts server)
-python rox.py --show-thinking # stream the model's reasoning
-python rox.py --status        # JSON health report
+python coal.py                 # interactive chat (auto-starts server)
+python coal.py --show-thinking # stream the model's reasoning
+python coal.py --status        # JSON health report
 ```
 
 ## System map (10,000 ft)
 
 ```
                 ┌─────────────────────────────────────────────┐
-                │                 rox.py (Rox)                │
+                │                 coal.py (Coal)                │
                 │   orchestrates one conversational turn      │
                 └──────┬──────────┬───────────┬───────────────┘
                        │          │           │
@@ -77,13 +77,13 @@ python rox.py --status        # JSON health report
                    │              │               │
         ┌──────────▼──────────────▼───────────────▼─────────┐
         │            llama.cpp (llama-server.exe)           │
-        │    ROX-N-35B-A3B Q4_K_M  +  mmproj (vision)       │
+        │    Coal-35B-A3B Q4_K_M  +  mmproj (vision)       │
         │    Vulkan GPU offload (-ngl 8), port 1234          │
         └────────────────────────┬──────────────────────────┘
                                  │
         ┌────────────────────────▼──────────────────────────┐
         │   Ollama (CPU-only, on demand)                    │
-        │   nomic-embed-text (embeddings) + roxn-3b/7b      │
+        │   nomic-embed-text (embeddings) + coaln-3b/7b      │
         └───────────────────────────────────────────────────┘
                                  │
         ┌────────────────────────▼──────────────────────────┐
@@ -94,12 +94,12 @@ python rox.py --status        # JSON health report
 
 ## Hard facts (verified)
 
-- **Model**: ROX-N-35B-A3B Q4_K_M (19.7 GB), real Qwen3.6-35B-A3B MoE
+- **Model**: Coal-35B-A3B Q4_K_M (19.7 GB), real Qwen3.6-35B-A3B MoE
   (35B total / ~3B active, 40 layers, 256 experts, 8 active)
 - **Server**: llama.cpp 2.46.0 Vulkan build, `-ngl 8` layers on an
   8 GB Radeon RX 570, 8192 ctx
 - **RAM**: 24 GB total — the tightest constraint in the system
-- **Memory**: SQLite (`~/.rox/memory.db`) + nomic 768-d embeddings
+- **Memory**: SQLite (`~/.coal/memory.db`) + nomic 768-d embeddings
   (Ollama, CPU-only to avoid VRAM theft)
 - **Tools**: 358 registered across 14 categories
 - **Tests**: 145 tool tests, 15-module regression, 450K deterministic

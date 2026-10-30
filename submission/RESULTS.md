@@ -1,4 +1,4 @@
-# ROX N — 50 unique chips (designed by ROX N)
+# Coal — 50 unique chips (designed by Coal)
 
 - catalogue      : 50 unique designs
 - attempted      : 50

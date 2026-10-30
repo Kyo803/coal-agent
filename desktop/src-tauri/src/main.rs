@@ -1,4 +1,4 @@
-// ROX N desktop shell.
+// Coal desktop shell.
 //
 // A native window (Tauri + WebView2) that talks to the Python agent over the
 // same JSON REPL the terminal UI uses. The Rust side owns the child process
@@ -23,10 +23,10 @@ type Shared = Arc<Mutex<Agent>>;
 /// independent of the event system: a webview that cannot listen still works.
 type Queue = Arc<Mutex<VecDeque<String>>>;
 
-/// Append a line to %TEMP%\roxn_agent.log for diagnosing the bridge.
+/// Append a line to %TEMP%\coal_agent.log for diagnosing the bridge.
 fn alog(s: &str) {
     use std::io::Write as _;
-    let p = std::env::temp_dir().join("roxn_agent.log");
+    let p = std::env::temp_dir().join("coal_agent.log");
     if let Ok(mut f) = std::fs::OpenOptions::new()
         .create(true).append(true).open(p)
     {
@@ -34,43 +34,43 @@ fn alog(s: &str) {
     }
 }
 
-/// Where the Python agent lives. ROX_DIR wins; otherwise resolve relative to
-/// this crate (desktop/src-tauri -> ../../lm_track/rox_chat).
-fn rox_dir() -> std::path::PathBuf {
-    if let Ok(d) = std::env::var("ROX_DIR") {
+/// Where the Python agent lives. COAL_DIR wins; otherwise resolve relative to
+/// this crate (desktop/src-tauri -> ../../lm_track/coal_chat).
+fn coal_dir() -> std::path::PathBuf {
+    if let Ok(d) = std::env::var("COAL_DIR") {
         return std::path::PathBuf::from(d);
     }
     let here = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    here.join("..").join("..").join("lm_track").join("rox_chat")
+    here.join("..").join("..").join("lm_track").join("coal_chat")
 }
 
 fn spawn_agent(app: tauri::AppHandle, shared: Shared, queue: Queue) {
-    let dir = rox_dir();
+    let dir = coal_dir();
     alog(&format!("=== spawn agent in {}", dir.display()));
 
     // Prefer the py launcher; fall back to python.
     let mut cmd = Command::new("py");
-    cmd.args(["-3.15", "-u", "rox.py", "--json-repl"]);
+    cmd.args(["-3.15", "-u", "coal.py", "--json-repl"]);
 
     let mut child = match cmd
         .current_dir(&dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .env("ROX_NO_35B", "1")
+        .env("CoalO_35B", "1")
         .env("PYTHONUNBUFFERED", "1")
         .spawn()
     {
         Ok(c) => c,
         Err(_) => {
             let mut cmd2 = Command::new("python");
-            cmd2.args(["-u", "rox.py", "--json-repl"]);
+            cmd2.args(["-u", "coal.py", "--json-repl"]);
             match cmd2
                 .current_dir(&dir)
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
-                .env("ROX_NO_35B", "1")
+                .env("CoalO_35B", "1")
                 .env("PYTHONUNBUFFERED", "1")
                 .spawn()
             {
@@ -230,8 +230,8 @@ fn main() {
             let q = app.state::<Queue>().inner().clone();
             spawn_agent(handle, sh, q);
 
-            // diagnostics hook: ROX_SMOKE="prompt" sends one prompt on start
-            if let Ok(prompt) = std::env::var("ROX_SMOKE") {
+            // diagnostics hook: COAL_SMOKE="prompt" sends one prompt on start
+            if let Ok(prompt) = std::env::var("COAL_SMOKE") {
                 let sh2 = app.state::<Shared>().inner().clone();
                 std::thread::spawn(move || {
                     std::thread::sleep(std::time::Duration::from_secs(6));
@@ -246,8 +246,8 @@ fn main() {
                 });
             }
 
-            // diagnostics hook: ROX_SMOKE_TOOL='{"tool":"run_command",...}'
-            if let Ok(raw) = std::env::var("ROX_SMOKE_TOOL") {
+            // diagnostics hook: COAL_SMOKE_TOOL='{"tool":"run_command",...}'
+            if let Ok(raw) = std::env::var("COAL_SMOKE_TOOL") {
                 let sh3 = app.state::<Shared>().inner().clone();
                 std::thread::spawn(move || {
                     std::thread::sleep(std::time::Duration::from_secs(6));
@@ -263,5 +263,5 @@ fn main() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running ROX N");
+        .expect("error while running Coal");
 }

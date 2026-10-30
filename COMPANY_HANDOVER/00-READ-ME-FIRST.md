@@ -1,8 +1,8 @@
-# ROX N — COMPANY HANDOVER (READ ME FIRST)
+# Coal — COMPANY HANDOVER (READ ME FIRST)
 
-**Audit date:** 2026-10-03 · **Handed over by:** the builder · **For:** the next company/team taking over ROX N.
+**Audit date:** 2026-10-03 · **Handed over by:** the builder · **For:** the next company/team taking over Coal.
 
-> This folder is the complete, file-by-file audit of the ROX N project. Read
+> This folder is the complete, file-by-file audit of the Coal project. Read
 > this file first, then the numbered audit documents. Every source file in the
 > codebase is documented in one of the `0X-*.md` documents. If you need to know
 > *what a file does*, look it up in the **File Map** below and jump to the
@@ -10,16 +10,16 @@
 
 ---
 
-## 1. What ROX N is
+## 1. What Coal is
 
-ROX N is a **fully local personal AI**: a 35B-parameter brain served by
+Coal is a **fully local personal AI**: a 35B-parameter brain served by
 llama.cpp, wrapped in a custom "body" of forever-memory, a 369-tool layer,
 vision, image generation/editing, project awareness, document RAG, and an
 autonomous multi-file project builder. Nothing leaves the machine.
 
 Three things are mixed in this repo — all important, all distinguishable:
 
-1. **The ROX N assistant runtime** (the product you run): `rox.py`,
+1. **The Coal assistant runtime** (the product you run): `coal.py`,
    `tools/`, `memory/`, `project/`, `rag.py`, `vision.py`, etc.
 2. **The training / research track** (how the brains were made and how to
    make bigger ones): `train_*.py`, `datamix_*.py`, `sft*`, `dpo*`,
@@ -27,7 +27,7 @@ Three things are mixed in this repo — all important, all distinguishable:
 3. **The evaluation / test layer**: `eval/`, `test_tools.py`,
    `test_build.py`, `test_memory.py`, `EVALUATION_REPORT.md`.
 
-Plus **six built example projects** on the Desktop (`ROX Projects/`) that ROX N
+Plus **six built example projects** on the Desktop (`Coal Projects/`) that Coal
 built autonomously (see `09-BUILT-PROJECTS.md`).
 
 ---
@@ -35,15 +35,15 @@ built autonomously (see `09-BUILT-PROJECTS.md`).
 ## 2. The one-command quick start
 
 ```powershell
-cd "C:\Users\WERU1\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat"
+cd "C:\Users\WERU1\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
 python install.py            # link model + server into Program Files, write config (first time)
-python rox.py                # interactive chat (auto-starts the llama-server)
-python rox.py --say "hello"  # one-shot
-python rox.py --status       # full status as JSON
+python coal.py                # interactive chat (auto-starts the llama-server)
+python coal.py --say "hello"  # one-shot
+python coal.py --status       # full status as JSON
 ```
 
-Install location: `C:\Users\WERU1\AppData\Local\Programs\ROX N\`
-Codebase root: `C:\Users\WERU1\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat\`
+Install location: `C:\Users\WERU1\AppData\Local\Programs\Coal\`
+Codebase root: `C:\Users\WERU1\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat\`
 
 Test suite (should be green):
 
@@ -60,11 +60,11 @@ python eval/suite.py --scale quick --llm none
 
 | Area | Files | Audit doc |
 |------|-------|-----------|
-| Entry point / CLI | `rox.py` | `03-RUNTIME-CORE-AUDIT.md` |
-| Config | `rox_config.py`, install `config.json` | `03-…`, `08-…` |
-| Server lifecycle | `server_manager.py`, `start_rox_server.bat` | `03-…` |
-| Model backends | `rox_backend.py`, `hf_backend.py`, `run_local.py`, `local_run.py` | `03-…`, `07-…` |
-| Chat template + streaming | `rox_template.py`, `streaming.py`, `chat.py`, `chat_v2.py` | `03-…` |
+| Entry point / CLI | `coal.py` | `03-RUNTIME-CORE-AUDIT.md` |
+| Config | `coal_config.py`, install `config.json` | `03-…`, `08-…` |
+| Server lifecycle | `server_manager.py`, `start_coal_server.bat` | `03-…` |
+| Model backends | `coal_backend.py`, `hf_backend.py`, `run_local.py`, `local_run.py` | `03-…`, `07-…` |
+| Chat template + streaming | `coal_template.py`, `streaming.py`, `chat.py`, `chat_v2.py` | `03-…` |
 | Sessions / personality / router | `session.py`, `personality.py`, `router.py` | `03-…` |
 | Vision / images | `vision.py`, `resources.py` | `03-…` |
 | RAG / retrieval | `rag.py`, `retrieval.py`, `bigindex.py` | `03-…` |
@@ -76,9 +76,9 @@ python eval/suite.py --scale quick --llm none
 | Security + chip | `tools/handlers_security.py`, `tools/handlers_chip.py`, `chip_architect.py`, `project/contract.py` | `04-…`, `07-…` |
 | Project awareness | `project/` (5 files) | `05-…` |
 | Evaluation | `eval/` (6 files), `test_*.py` | `06-EVAL-TESTING-AUDIT.md` |
-| Training / data / models | `train_*.py`, `sft*`, `dpo*`, `run_*.py`, `arch*.py`, `datamix*`, `fetch*`, `gpu/`, tokenizer, checkpoints, `rox_*/` model dirs | `07-TRAINING-PIPELINE-AUDIT.md` |
+| Training / data / models | `train_*.py`, `sft*`, `dpo*`, `run_*.py`, `arch*.py`, `datamix*`, `fetch*`, `gpu/`, tokenizer, checkpoints, `coal_*/` model dirs | `07-TRAINING-PIPELINE-AUDIT.md` |
 | Config / data / logs | root `*.json`, `*.jsonl`, `*.log`, `*.ps1`, `*.sh` | `08-CONFIG-DATA-ARTIFACTS.md` |
-| Built projects (Desktop) | `ROX Projects/*` | `09-BUILT-PROJECTS.md` |
+| Built projects (Desktop) | `Coal Projects/*` | `09-BUILT-PROJECTS.md` |
 
 ---
 
@@ -105,14 +105,14 @@ python eval/suite.py --scale quick --llm none
   from the 35B (this was a hard-won bug fix — see `05-…`).
 - Cloud/SaaS tools (AWS, kubectl, Stripe, etc.) are **honest Tier-2 stubs** by
   design — they say what's missing, never fake success.
-- The `rox_500m`, `rox_brain`, `rox_chat`, `rox_kto`, `rox_online_dpo`,
-  `rox_orpo` folders are **model checkpoints/weights**, not source.
+- The `coal_500m`, `coal_brain`, `coal_chat`, `coal_kto`, `coal_online_dpo`,
+  `coal_orpo` folders are **model checkpoints/weights**, not source.
 
 ---
 
 ## 5. License / provenance notes
 
-- Model weights: Qwen-based `ROX-N-35B-A3B-Q4_K_M.gguf` (renamed in-repo;
+- Model weights: Qwen-based `Coal-35B-A3B-Q4_K_M.gguf` (renamed in-repo;
   GGUF internal metadata still says Qwen — a known cosmetic limitation).
 - Image model: FLUX.2 klein 4B Q8_0 (non-commercial terms apply).
 - Everything else in the repo was built in-project.

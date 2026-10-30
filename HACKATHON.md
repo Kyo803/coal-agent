@@ -6,7 +6,7 @@
 
 ## 1. The pitch
 
-> **ROX N is an agentic EDA engine.** You describe a chip in English; it writes
+> **Coal is an agentic EDA engine.** You describe a chip in English; it writes
 > the RTL, writes an *independent reference model of the specification*,
 > generates the testbench from that model, and drives a real toolchain â€”
 > lint, simulation, synthesis with ABC, formal checks, and FPGA
@@ -27,7 +27,7 @@ decide *whether it is real*.
 
 | time | shot | what the judge sees |
 |---|---|---|
-| 0:00â€“0:20 | TUI, header | "ROX N â€” local agent, 429 tools" |
+| 0:00â€“0:20 | TUI, header | "Coal â€” local agent, 429 tools" |
 | 0:20â€“0:50 | type *"build a UART loopback chip"* | thinking stream visible, then `chip_build` tool call |
 | 0:50â€“1:30 | gate output | lint âœ“ sim âœ“ synth âœ“ formal âœ“ **pnr âœ“ 135.9 MHz**, 613 cells / 159 FF |
 | 1:30â€“2:00 | `UNIQUE_CHIPS.md` | 50 designs, 17 verified, failure reasons for the rest |
@@ -49,8 +49,8 @@ chip; a live demo risks dead air.
 provider()  ->  "nebius" if NEBIUS_API_KEY else "ollama"
 ```
 
-- **Nebius AI Studio**: `ROX_NEBIUS_URL` (default `https://api.studio.nebius.com/v1`),
-  `ROX_NEBIUS_MODEL` (default `Qwen/Qwen2.5-Coder-32B-Instruct`).
+- **Nebius AI Studio**: `CoalEBIUS_URL` (default `https://api.studio.nebius.com/v1`),
+  `CoalEBIUS_MODEL` (default `Qwen/Qwen2.5-Coder-32B-Instruct`).
 - Because it is OpenAI-compatible, the **same adapter can point at an NVIDIA
   NIM endpoint** â€” change the base URL and model name. That is a one-line
   change, not a rewrite.
@@ -59,7 +59,7 @@ provider()  ->  "nebius" if NEBIUS_API_KEY else "ollama"
 
 ```powershell
 $env:NEBIUS_API_KEY = "..."                       # required for the sponsor angle
-$env:ROX_NEBIUS_MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
+$env:CoalEBIUS_MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
 py -3.15 -c "from chipflow import model; print(model.provider_status())"
 ```
 
@@ -95,7 +95,7 @@ other 33 failed."
 - [ ] 3-minute video, 1080p, captions
 - [ ] `NEBIUS_API_KEY` integration verified with a real key
 - [ ] one-command demo: `py -3.15 -m chipflow.unique --limit 5` and the TUI
-- [ ] results: `~/.rox/work/chips/_unique/UNIQUE_CHIPS.md` copied into the repo
+- [ ] results: `~/.coal/work/chips/_unique/UNIQUE_CHIPS.md` copied into the repo
 - [ ] screenshots: composition PNG, die map, 3D package, TUI
 - [ ] LICENSE + NOTICE (deps: yosys, iverilog, verilator, nextpnr, Ollama/Nebius)
 
@@ -129,5 +129,5 @@ other 33 failed."
 
 ## 9. The one sentence to end the video on
 
-> "Anyone can make a model write Verilog. ROX N makes it prove the chip works â€”
+> "Anyone can make a model write Verilog. Coal makes it prove the chip works â€”
 > or refuses to call it a chip."

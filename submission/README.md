@@ -1,10 +1,10 @@
-# ROX N — the AI that proves the chip works
+# Coal — the AI that proves the chip works
 
 **Nebius × NVIDIA hackathon submission.**
 
-**Live project page: https://kyo803.github.io/rox-n/**
+**Live project page: https://kyo803.github.io/coal-agent/**
 
-Describe a chip in English. ROX N writes the RTL, writes an **independent
+Describe a chip in English. Coal writes the RTL, writes an **independent
 reference model of the specification**, generates the testbench from that
 model, and drives a real toolchain — lint, simulation, synthesis with ABC,
 formal checks, and FPGA place-and-route with timing.
@@ -21,7 +21,7 @@ tells you why.**
 Every "AI writes Verilog" demo has the same hole: the model writes the design
 *and* the test, so the test agrees with the bug. It looks correct and isn't.
 
-ROX N removes the model from the trust path.
+Coal removes the model from the trust path.
 
 ## How it actually works
 
@@ -54,7 +54,7 @@ with a broken design.
 
 ![composition](assets/composition.png)
 
-*The UART loopback chip as ROX N sees it: four blocks, eleven nets, every
+*The UART loopback chip as Coal sees it: four blocks, eleven nets, every
 connection width-checked before a line of Verilog is emitted.*
 
 ## Quickstart
@@ -62,17 +62,17 @@ connection width-checked before a line of Verilog is emitted.*
 ```powershell
 # 1. hosted inference (optional — falls back to local Ollama)
 $env:NEBIUS_API_KEY = "..."        # Nebius Token Factory
-$env:ROX_NEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+$env:CoalEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # 2. build and verify a chip
-cd ROX-N\lm_track\rox_chat
+cd Coal\lm_track\coal_chat
 py -3.15 -c "import chipflow; r = chipflow.build('demo', spec='an 8-bit counter'); print(chipflow.summary_text(r))"
 
 # 3. the terminal UI
-rox_tui\rox-tui.exe
+coal_tui\coal-tui.exe
 ```
 
-The toolchain runs inside WSL; ROX N detects it automatically and, if it is
+The toolchain runs inside WSL; Coal detects it automatically and, if it is
 missing, installs `iverilog verilator yosys gtkwave nextpnr-ice40` for you.
 
 ## Results, including the failures
@@ -100,7 +100,7 @@ We report **44/50** because the gate refused the rest.
 
 - The design model runs on **Nebius Token Factory** (OpenAI-compatible,
   NVIDIA-accelerated, default `nvidia/nemotron-3-super-120b-a12b`). The
-  adapter is endpoint-agnostic: point `ROX_NEBIUS_URL` at an **NVIDIA NIM**
+  adapter is endpoint-agnostic: point `CoalEBIUS_URL` at an **NVIDIA NIM**
   endpoint and the same agent uses it.
 - Everything that *decides* runs locally and deterministically. No network
   dependency in the verification path — a demo cannot be derailed by Wi-Fi.
@@ -124,13 +124,13 @@ submission/
   RESULTS.md          all 50 designs, verified and rejected
   DEMO.md             3-minute demo script
   assets/             architecture, composition graph, die map, gate schematic, 3D package
-lm_track/rox_chat/
+lm_track/coal_chat/
   chipflow/           the engine: blocks, reference models, gate, P&R, composition
-  rox_tui/            the terminal UI (Go)
+  coal_tui/            the terminal UI (Go)
   tools_selftest.py   429-tool self-test
 ```
 
 ---
 
-> "Anyone can make a model write Verilog. ROX N makes it prove the chip
+> "Anyone can make a model write Verilog. Coal makes it prove the chip
 > works — or refuses to call it a chip."

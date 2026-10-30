@@ -1,0 +1,27 @@
+{
+ "base": {
+  "acc": 0.611,
+  "n": 36,
+  "identity": "I'm a small assistant built in the Coal project. I'm a simple AI designed to he"
+ },
+ "sft": {
+  "acc": 0.5,
+  "n": 36,
+  "identity": "I am a small assistant built in the Coal project."
+ },
+ "kto": {
+  "acc": 0.528,
+  "n": 36,
+  "identity": "I am a small assistant built in the Coal project."
+ },
+ "orpo": {
+  "acc": 0.528,
+  "n": 36,
+  "identity": "I am a small assistant built in the Coal project."
+ },
+ "online_dpo": {
+  "acc": 0.5,
+  "n": 36,
+  "identity": "I am a small assistant built in the Coal project."
+ }
+}

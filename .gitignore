@@ -10,16 +10,16 @@
 *.npz
 lm_track/mini_chat/
 lm_track/from_scratch/tinystories.pt
-lm_track/rox_chat/bigindex/
-lm_track/rox_chat/dpo_prefs.jsonl
-lm_track/rox_chat/rox_brain/
-lm_track/rox_chat/rox_chat/
-lm_track/rox_chat/rox_online_dpo/
-lm_track/rox_chat/rox_kto/
-lm_track/rox_chat/rox_orpo/
+lm_track/coal_chat/bigindex/
+lm_track/coal_chat/dpo_prefs.jsonl
+lm_track/coal_chat/coal_brain/
+lm_track/coal_chat/coal_chat/
+lm_track/coal_chat/coal_online_dpo/
+lm_track/coal_chat/coal_kto/
+lm_track/coal_chat/coal_orpo/
 
 # --- generated work products ---------------------------------------------
-.rox/
+.coal/
 *.vcd
 *.out
 __pycache__/
@@ -41,7 +41,7 @@ desktop.ini
 
 # --- desktop build artifacts ---------------------------------------------
 desktop/src-tauri/target/
-desktop/launcher/rox-n-launcher.exe
+desktop/launcher/coal-launcher.exe
 
 desktop/*.exe
 

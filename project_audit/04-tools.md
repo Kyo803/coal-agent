@@ -2,7 +2,7 @@
 
 ## Overview
 
-ROX N ships **357 tools across 14 categories**, all lazy-loaded,
+Coal ships **357 tools across 14 categories**, all lazy-loaded,
 permission-gated, and executed safely. The layer is:
 
 ```
@@ -122,7 +122,7 @@ Rule table (ordered; first match wins):
 - **Project**: project_new/open/audit/journal/status
 - **Web**: web_fetch / browser_navigate / sql_query
 
-`needs_force(intent)` → true for high confidence → `rox.py` forces the
+`needs_force(intent)` → true for high confidence → `coal.py` forces the
 tool and guarantees its schema.
 
 ## Handler modules

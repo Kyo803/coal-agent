@@ -9,7 +9,7 @@ narrative; this is the technical map.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  rox.py  (Rox class + CLI)                                          │
+│  coal.py  (Coal class + CLI)                                          │
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │ per turn: safety → calc → route → memory → rag → personality │  │
 │  │ → INTENT-FIRST → lazy tools → stream → execute → store       │  │
@@ -20,12 +20,12 @@ narrative; this is the technical map.
   (35B gguf,            specs/permissions/exec/     (SQLite + nomic      \
    127.0.0.1:1234)      shell_gate/intent/handlers   embeddings)          │
        │                                                              │
-  rox_backend.py                                                   rag.py
+  coal_backend.py                                                   rag.py
   streaming.py                                                    vision.py
-  rox_template.py                                                 resources.py
+  coal_template.py                                                 resources.py
 ```
 
-## 2. The turn flow (what `Rox.respond()` does)
+## 2. The turn flow (what `Coal.respond()` does)
 
 1. **Safety** — `attachments.lockout_check(text)`: crisis phrase? hard
    redirect.
@@ -41,7 +41,7 @@ narrative; this is the technical map.
    tool (write_file, generate_image, build_project, etc.).
 8. **Lazy tool schemas** — only the router-detected category's tools enter the
    prompt (capped ~30) + memory tools always.
-9. **Stream** — `streaming.py` calls the server; `rox_template.py` splits
+9. **Stream** — `streaming.py` calls the server; `coal_template.py` splits
    thinking from the visible answer; content is captured even when it arrives
    on the reasoning channel.
 10. **Execute tools** — native (memory/RAG) or `tools/exec.py` (fs/git/exec/
@@ -65,7 +65,7 @@ tools/handlers_*.py  fs, exec, other, misc, browser, db, web2, cloud,
 - **Lazy loading:** `lazy_schemas(ensure=…)` — only the needed category's
   tools are materialized into the prompt. Meta-tools (`list_tools`,
   `use_category`) are removed from prompts.
-- **Native tools** (handled by `rox.py`, not the executor): memory tools +
+- **Native tools** (handled by `coal.py`, not the executor): memory tools +
   `build_project`.
 
 ## 4. Memory architecture (`memory/`)
@@ -82,13 +82,13 @@ tools.py       model-callable memory tools (remember/search_memory/…)
 assemble.py    builds the prompt's memory block under a token budget
 ```
 
-Storage root: `~/.rox/` (`memory.db`, `vectors/`, `profile.json`,
-`personality.json`, `rag/`, `sessions/`). Delete `~/.rox` to wipe everything.
+Storage root: `~/.coal/` (`memory.db`, `vectors/`, `profile.json`,
+`personality.json`, `rag/`, `sessions/`). Delete `~/.coal` to wipe everything.
 
 ## 5. Project awareness (`project/`)
 
 ```
-project.py  Project model: Desktop\ROX Projects\<name>\, SQLite ledger,
+project.py  Project model: Desktop\Coal Projects\<name>\, SQLite ledger,
             architecture map (tree/symbols/imports), scan for changes
 journal.py  append-only JSONL of every write/edit/delete (auto-hooked)
 audit.py    missing imports, duplicate symbols, orphans, TODO markers
@@ -105,7 +105,7 @@ tools/handlers_image.py  generate_image / edit_image / custom_image
 
 Two heavy models cannot share 24 GB RAM, so they time-slice.
 
-## 7. The autonomous builder (native in `rox.py`)
+## 7. The autonomous builder (native in `coal.py`)
 
 ```
 build_project(description)   → plan → write files → npm install →
@@ -121,9 +121,9 @@ _finish_project              no re-plan: install + verify + repair
 
 ## 8. Key data flows
 
-- **Config:** `rox_config.py` reads install `config.json`; everything (model,
+- **Config:** `coal_config.py` reads install `config.json`; everything (model,
   memory, tools, image, project) is configured there.
-- **Model talk:** `rox_backend.py` (OpenAI-compatible) or `hf_backend.py`
+- **Model talk:** `coal_backend.py` (OpenAI-compatible) or `hf_backend.py`
   (HF fallback) or Ollama fallback; `streaming.py` on top.
 - **Observability:** `observability.py` records structured logs + latency +
   tool traces; `server_manager.py` writes server health/RAM/VRAM state.

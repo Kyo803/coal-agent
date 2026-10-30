@@ -5,7 +5,7 @@ Status: mult-add accounting + CPython latency are measured in CI
 are procedures, not results — fill them on target silicon.
 
 ## 1. Quantisation (runs anywhere)
-`quant_bench()` in `rox_n/export.py`: dynamic int8 on the dense twin.
+`quant_bench()` in `coal_n/export.py`: dynamic int8 on the dense twin.
 Report: fp32 vs int8 bytes, ms, max logit diff. Gate: diff must not flip
 the detector operating point (re-check F1 on int8 logits).
 
@@ -30,6 +30,6 @@ MoE serving). Verifies max abs diff vs torch when onnxruntime exists.
   on <board>, <precision>".
 
 ## 5. Deployment artifact
-`RoxN.save(path)` → versioned zip (config + weights + head stats).
+`CoalN.save(path)` → versioned zip (config + weights + head stats).
 Flash the zip + `docs/quickstart.md` inference snippet; never a pickle
 of a live object.

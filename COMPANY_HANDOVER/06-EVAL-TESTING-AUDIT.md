@@ -22,18 +22,18 @@ The proof layer. Every file documented.
 | `eval/__init__.py` (1 KB) | Package marker | Declares the suite. |
 | `eval/generators.py` (8.6 KB) | Programmatic test-case generators | Every case has a *verified expected answer* — no hand-written assertions. Seeded for reproducibility. Arithmetic, safety, retrieval, fact-extraction, tool-routing, memory. |
 | `eval/metrics.py` (0.9 KB) | Metrics | Accuracy / precision / recall / F1. No external deps. |
-| `eval/runners.py` (7.7 KB) | Runners | Each runs the *real* ROX N code (`attachments.tool_gate`, `memory.*`, `retrieval.BM25`) against generated cases. Deterministic runners + LLM runners. |
-| `eval/suite.py` (7.9 KB) | Orchestrator | `python eval/suite.py --scale quick|huge --llm none|rox --llm-count N`. Runs everything, writes `eval_results.json` + a report. |
+| `eval/runners.py` (7.7 KB) | Runners | Each runs the *real* Coal code (`attachments.tool_gate`, `memory.*`, `retrieval.BM25`) against generated cases. Deterministic runners + LLM runners. |
+| `eval/suite.py` (7.9 KB) | Orchestrator | `python eval/suite.py --scale quick|huge --llm none|coal --llm-count N`. Runs everything, writes `eval_results.json` + a report. |
 | `eval/final_report.py` (7 KB) | Report generator | `python eval/final_report.py --results eval_results.json --out EVALUATION_REPORT.md` — renders the professional markdown report. |
 
 ## Root evaluation scripts
 
 | File | Purpose |
 |------|---------|
-| `eval_live.py` (1.9 KB) | Evaluate ROX N on the live local model (`--n 12` QA + multi-turn recall). |
+| `eval_live.py` (1.9 KB) | Evaluate Coal on the live local model (`--n 12` QA + multi-turn recall). |
 | `eval_harness.py` (6.6 KB) | Standard benchmarks + QA + memory + safety in one run. |
 | `evals.py` (6.8 KB) | Every PLAN §6 gate that runs without a GPU. |
-| `eval_brain.py` (1.5 KB) | Before/after: base instruct vs our SFT `rox_brain` on the 36-QA set + identity. |
+| `eval_brain.py` (1.5 KB) | Before/after: base instruct vs our SFT `coal_brain` on the 36-QA set + identity. |
 | `compare_all.py` (1.5 KB) | Compare all trained models on the 36-QA factuality set + identity. |
 | `bench_local.py` (2.4 KB) | Local performance benchmark: latency, RAM, compute per token. |
 

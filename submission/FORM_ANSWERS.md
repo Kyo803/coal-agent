@@ -1,6 +1,6 @@
 # Answers for the submission form
 
-Every number here is reproducible with the scripts in `lm_track/rox_chat/`.
+Every number here is reproducible with the scripts in `lm_track/coal_chat/`.
 Where a measurement is noisy, it says so.
 
 ## Which model(s) did you use, and why that size?
@@ -101,13 +101,13 @@ statistically settled.
   Factory put the design step on NVIDIA GPUs while verification stayed local.
 - **The OpenAI-compatible API meant the integration was a drop-in.** The same
   adapter points at an NVIDIA NIM endpoint by changing one environment
-  variable (`ROX_NEBIUS_URL`), so there is no vendor lock-in in the code.
+  variable (`CoalEBIUS_URL`), so there is no vendor lock-in in the code.
 - **Per-token billing matched the workload.** Verification is deterministic and
   free; only the design step costs anything, and it is bursty.
 
 ## How was the project significantly updated with Nebius tools?
 
-ROX N already had the verification engine: the gate, the reference-model
+Coal already had the verification engine: the gate, the reference-model
 testbenches, the deterministic block library, the FPGA place-and-route. The
 Nebius work is what made the **design** step viable at scale:
 

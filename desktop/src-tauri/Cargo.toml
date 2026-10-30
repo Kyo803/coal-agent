@@ -1,7 +1,7 @@
 [package]
-name = "rox-n-desktop"
+name = "coal-desktop"
 version = "0.1.0"
-description = "ROX N desktop client"
+description = "Coal desktop client"
 edition = "2021"
 rust-version = "1.77"
 

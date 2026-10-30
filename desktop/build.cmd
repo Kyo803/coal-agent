@@ -1,5 +1,5 @@
 @echo off
-rem Build the ROX N desktop app: icon -> Rust shell -> Go launcher.
+rem Build the Coal desktop app: icon -> Rust shell -> Go launcher.
 setlocal
 cd /d "%~dp0"
 
@@ -14,11 +14,11 @@ popd
 echo [3/3] Go launcher
 pushd launcher
 set GOFLAGS=-mod=mod
-go build -o rox-n-launcher.exe . || (popd & goto :err)
+go build -o coal-launcher.exe . || (popd & goto :err)
 popd
 
 echo.
-echo done. run:  launcher\rox-n-launcher.exe
+echo done. run:  launcher\coal-launcher.exe
 exit /b 0
 
 :err

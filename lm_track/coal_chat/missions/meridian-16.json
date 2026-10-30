@@ -1,0 +1,16 @@
+{
+  "name": "meridian-16",
+  "title": "MERIDIAN-16 — 64Kx16 static RAM chip",
+  "stack": "hdl",
+  "description": "Build MERIDIAN-16: a synchronous 64K x 16-bit static RAM with byte-enables, a write-enable, an address latch, and an output-enable. It must store and recall a known test pattern and the testbench must print MERIDIAN:PASS.",
+  "context": "64K depth means 16-bit address. Clocked write (we) with two byte-enable bits be[1:0]. oe gates the output (tristate via 1'bz). Async read when oe=1. Test: write pattern at several addresses, read back, assert equality, print MERIDIAN:PASS.",
+  "manifest": [
+    {"path": "mem64k.v", "purpose": "64K x 16 synchronous RAM with byte enables and tri-state output", "ports": "input clk, input [15:0] addr, input [15:0] din, input we, input [1:0] be, input oe, output [15:0] dout", "behavior": "with we=1 write 16'h1234 to addr 0 (be=2'b11); zero addr1 by writing 16'h0000 (be=2'b11), then write 16'hABCD to addr1 with be=2'b10 (only high byte); check addr0 reads 16'h1234 and addr1 reads 16'hAB00; with oe=0 the output must be high-impedance. Print mem64k:PASS only if all correct.", "reference": "missions/refs/meridian-16/mem64k.v"},
+    {"path": "tb_mem.v", "purpose": "testbench writing/reading patterns; print MERIDIAN:PASS", "ports": "", "reference": "missions/refs/meridian-16/tb_mem.v"}
+  ],
+  "criteria": [
+    "file:/home/coal/work/meridian-16/mem64k.v",
+    "contains:MERIDIAN:PASS",
+    "runs:sh -c \"cd /home/coal/work/meridian-16 && iverilog -g2012 -o /tmp/mem.out mem64k.v tb_mem.v && vvp /tmp/mem.out\""
+  ]
+}

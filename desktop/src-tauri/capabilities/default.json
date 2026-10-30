@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "ROX N desktop: allow the UI to listen for agent events and drive the window.",
+  "description": "Coal desktop: allow the UI to listen for agent events and drive the window.",
   "windows": ["main"],
   "permissions": [
     "core:default",

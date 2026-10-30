@@ -1,4 +1,4 @@
-# ROX N — prototype requirements (days 0-2: FOU only)
+# Coal — prototype requirements (days 0-2: FOU only)
 torch>=2.0
 numpy>=1.24
 matplotlib>=3.7

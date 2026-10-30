@@ -1,7 +1,7 @@
 # 08 — CONFIG, DATA FILES, LOGS, AND ARTIFACTS
 
 The non-source files that matter: configuration, staged data, generated data,
-logs, install layout, and the `~/.rox` runtime store.
+logs, install layout, and the `~/.coal` runtime store.
 
 ---
 
@@ -9,15 +9,15 @@ logs, install layout, and the `~/.rox` runtime store.
 
 | File | Purpose |
 |------|---------|
-| `rox_config.py` (in `03-…`) | Loads the config below. |
-| `C:\Users\WERU1\AppData\Local\Programs\ROX N\config.json` | **THE config.** Sections: `model` (name `ROX-N-35B-A3B`, gguf + mmproj paths, server_exe, host 127.0.0.1, port 1234, context 8192, gpu_layers 8, vram_reserve_gb, vulkan_stepdown, threads, thinking, vision, max_tokens, temperature), `fallback_servers` (Ollama `roxn-7b`), `memory` (root `~/.rox`, embed_backend ollama, embed_model nomic-embed-text, max_facts, consolidate_every, recall_k), `personality` (name Rox, adapt_to_user, base_traits), `tools` (enabled/auto_allow/allow_tier2/ask_confirms), `project`, `board` (model `roxn-3b`, ollama_url, idle_seconds, auto_archive, park_35b, provenance, num_ctx, budget_tokens), `image` (model, backend, steps), `rag`. |
+| `coal_config.py` (in `03-…`) | Loads the config below. |
+| `C:\Users\WERU1\AppData\Local\Programs\Coal\config.json` | **THE config.** Sections: `model` (name `Coal-35B-A3B`, gguf + mmproj paths, server_exe, host 127.0.0.1, port 1234, context 8192, gpu_layers 8, vram_reserve_gb, vulkan_stepdown, threads, thinking, vision, max_tokens, temperature), `fallback_servers` (Ollama `coaln-7b`), `memory` (root `~/.coal`, embed_backend ollama, embed_model nomic-embed-text, max_facts, consolidate_every, recall_k), `personality` (name Coal, adapt_to_user, base_traits), `tools` (enabled/auto_allow/allow_tier2/ask_confirms), `project`, `board` (model `coaln-3b`, ollama_url, idle_seconds, auto_archive, park_35b, provenance, num_ctx, budget_tokens), `image` (model, backend, steps), `rag`. |
 | `str_config.json` | STR trigger calibration (θ1 threshold 0.4896, dis 0.5, recall targets). Consumed by `retrieval.py`/`calibrate.py`. |
 | `data_manifest.json` | 100B data manifest: target_tokens, mix ratios (web/code/math/conversation/instruction), per-kind token budgets. |
 | `stage0.json` | Stage-0 mechanism-compose results. |
 | `fim.json` | FIM gradient-conflict scores. |
 | `matrix.json` | Mechanism-ablation results. |
 | `model_compare.json` | Base vs SFT vs KTO … on 36-QA (accuracy + identity). |
-| `brain_eval.json` | Base vs our SFT `rox_brain` on 36-QA. |
+| `brain_eval.json` | Base vs our SFT `coal_brain` on 36-QA. |
 | `evals.json` | Evaluation gate outputs (factuality, coherence, fallbacks). |
 | `eval_results.json` | Full suite results (input to `eval/final_report.py`). |
 | `bpe_demo.json` | BPE demo merges (tiny tokenizer demo). |
@@ -62,35 +62,35 @@ Fetched conversational + English-teaching corpora (raw, staged for tokenizing).
 | `pretrain_log.txt` (13.8 KB) | Pretrain run log. |
 | `train_log.txt` (18.6 KB) | Training log. |
 | `dpo_out.log`, `dpo_err.log`, `dpo_run.err.log`, `train_run.log`, `train_run.err.log` | Alignment/training stderr/stdout scratch. |
-| `C:\…\ROX N\logs\llama_server.log`, `rox.jsonl` | Server log + runtime session log (install dir). |
+| `C:\…\Coal\logs\llama_server.log`, `coal.jsonl` | Server log + runtime session log (install dir). |
 
 ## 5. Scripts (PowerShell / batch)
 
 | File | Purpose |
 |------|---------|
-| `start_rox_server.bat` | Detached llama-server launch. |
+| `start_coal_server.bat` | Detached llama-server launch. |
 | `train_all.ps1` | Run the full training sequence. |
 | `overnight.ps1` | Overnight automation. |
 | `pretrain_watch.ps1` | Watch pretrain progress. |
 | `dpo_watch.ps1` | Watch DPO progress. |
 
-## 6. Install directory layout (`C:\Users\WERU1\AppData\Local\Programs\ROX N\`)
+## 6. Install directory layout (`C:\Users\WERU1\AppData\Local\Programs\Coal\`)
 
 ```
 config.json          ← the config (see §1)
-models\              ROX-N-35B-A3B-Q4_K_M.gguf (19.7 GB) + mmproj (vision)
+models\              Coal-35B-A3B-Q4_K_M.gguf (19.7 GB) + mmproj (vision)
 server\              llama-server.exe (llama.cpp 2.46.0) + fallback\ (2.31.2)
 image\               sd-cli.exe + FLUX.2 klein 4B Q8_0 + Qwen3-4B encoder + VAE
-logs\                llama_server.log, rox.jsonl
+logs\                llama_server.log, coal.jsonl
 ```
 
-**HF source (separate, weight-level):** `D:\ROX_N_HF\Qwen3.6-35B-A3B\` (~67 GB)
+**HF source (separate, weight-level):** `D:\Coal_HF\Qwen3.6-35B-A3B\` (~67 GB)
 — config.json, tokenizer.json, 26 model.safetensors shards of the text backbone
 of `Qwen/Qwen3.6-35B-A3B`. Recorded in `config.json` → `model.hf_source` /
 `model.hf_repos`. GGUF = serving artifact; HF = source for weight surgery
 (abliteration / LoRA / merge / re-quantize), which needs ≥ 70 GB RAM/VRAM.
 
-## 7. `~/.rox/` — the runtime store (created on first run)
+## 7. `~/.coal/` — the runtime store (created on first run)
 
 ```
 memory.db       SQLite: sessions, messages, facts, entities, summaries
@@ -107,7 +107,7 @@ backups/        self-modification backups (edit_self)
 work/           default workspace + generated images
 ```
 
-**Delete `~/.rox` to wipe everything** (memory, profile, RAG, sessions).
+**Delete `~/.coal` to wipe everything** (memory, profile, RAG, sessions).
 
 ---
 

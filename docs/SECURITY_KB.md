@@ -1,6 +1,6 @@
 # Security knowledge base (bug bounty + defensive reference)
 
-ROX N carries a curated cybersecurity reference and two tools to query it.
+Coal carries a curated cybersecurity reference and two tools to query it.
 It is deliberately **reference and method, not an exploit kit**.
 
 ## What is in it

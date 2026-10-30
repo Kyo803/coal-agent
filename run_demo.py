@@ -13,8 +13,8 @@ import time
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from rox_n.config import MVP_DEFAULT
-from rox_n.stream import Streamer
+from coal_n.config import MVP_DEFAULT
+from coal_n.stream import Streamer
 
 HERE_DIR = __import__("os").path.dirname(__import__("os").path.abspath(__file__))
 INDEX = open(__import__("os").path.join(HERE_DIR, "demo", "index.html"),
@@ -62,8 +62,8 @@ def smoke(steps=600):
     print(json.dumps(s, indent=2))
     # Stage-readiness gates: savings headline + accuracy close to baseline.
     assert s["flops_saved"] > 0.5, f"savings too low: {s['flops_saved']}"
-    assert s["f1_rox"] >= s["f1_den"] - 0.15, (
-        f"ROX F1 {s['f1_rox']:.2f} too far below dense {s['f1_den']:.2f}")
+    assert s["f1_coal"] >= s["f1_den"] - 0.15, (
+        f"Coal F1 {s['f1_coal']:.2f} too far below dense {s['f1_den']:.2f}")
     assert s["eme_gate_fraction"] < 1.0, "EME never echoed"
     assert s["plhe_est_fraction"] < 1.0, "PLHE never held"
     print("[smoke] OK: savings headline holds, accuracy close, "
@@ -86,7 +86,7 @@ def live(port=8137):
     threading.Thread(target=loop, daemon=True).start()
     srv = ThreadingHTTPServer(("127.0.0.1", port),
                               make_handler(st))
-    print(f"[demo] ROX N live on http://localhost:{port} "
+    print(f"[demo] Coal live on http://localhost:{port} "
           f"(source={st.meta['source']}, Ctrl+C to stop)")
     try:
         srv.serve_forever()

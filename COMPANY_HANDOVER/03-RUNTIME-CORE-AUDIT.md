@@ -5,16 +5,16 @@ entry: purpose → key contents/functions → relationships → how to run/test.
 
 ---
 
-## `rox.py` (67 KB) — THE ENTRY POINT · unified assistant + CLI
-The whole product in one file: the `Rox` class holds config, server manager,
+## `coal.py` (67 KB) — THE ENTRY POINT · unified assistant + CLI
+The whole product in one file: the `Coal` class holds config, server manager,
 session, memory, RAG, personality, router, permission system, executor, project
 hooks.
-- `Rox.__init__` wires everything; `respond()` is the full turn pipeline
+- `Coal.__init__` wires everything; `respond()` is the full turn pipeline
   (see `02-ARCHITECTURE.md §2`).
 - **Intent-first path:** forced tools for `write_file`, `remember`,
   `project_new`, `generate_image`/`edit_image`/`custom_image`,
   `ask_about_image`/`ocr_image`, `build_project`.
-- **Write path:** `_gen_file`-style content-only pass, then ROX N executes
+- **Write path:** `_gen_file`-style content-only pass, then Coal executes
   `write_file` with a confirmed path; `_langpack_context` injects the matching
   language pack; `_infer_filename`/`_extract_file_body` handle naming + body.
 - **Autonomous builder:** `build_project`, `_plan_project`, `_gen_file`,
@@ -24,9 +24,9 @@ hooks.
 - **CLI:** `--say`, `--status`, `--session`, `--no-autostart`,
   `--show-thinking`, `--resume <name>`, `--finish <name>`. Reconfigures
   stdout/stderr to UTF-8 (Windows cp1252 would crash on model output).
-- Run: `python rox.py`. Test: `python test_tools.py`, `python test_build.py`.
+- Run: `python coal.py`. Test: `python test_tools.py`, `python test_build.py`.
 
-## `rox_config.py` (4.5 KB) — configuration loader
+## `coal_config.py` (4.5 KB) — configuration loader
 Loads `config.json` from the install dir; `cfg` singleton with sections
 `model`, `fallback_servers`, `memory`, `personality`, `tools`, `image`,
 `project`, `rag`. Everything reads config through here — never hard-code
@@ -36,14 +36,14 @@ paths/settings in handlers.
 Owns the llama-server process: `ensure()` auto-starts if not running,
 `is_running()` (duplicate-server guard — a real past bug), health check,
 RAM/VRAM guard, Vulkan auto-tune (`gpu_layers` steps down on OOM), stop/status.
-Also provides `status()` data used by `rox.py --status`.
+Also provides `status()` data used by `coal.py --status`.
 
-## `rox_backend.py` (8.3 KB) — local model backend
+## `coal_backend.py` (8.3 KB) — local model backend
 OpenAI-compatible client for the local llama-server (`/v1/chat/completions`,
-`/v1/models`). Class `RoxBackend`. Used by `streaming.py`/`generate.py`.
+`/v1/models`). Class `CoalBackend`. Used by `streaming.py`/`generate.py`.
 Rebranded from `qwen_backend.py` (class renamed too).
 
-## `rox_template.py` (5.9 KB) — chat template + tool-call format
+## `coal_template.py` (5.9 KB) — chat template + tool-call format
 `build_chat` (exact Qwen chat template with `enable_thinking`), `split_thinking`
 (separates `thinking`/`response` regions), `parse_tool_calls` (XML tool calls),
 `TOOL_SCHEMAS`. Rebranded from `qwen_template.py`.
@@ -55,13 +55,13 @@ tool calls, and falls back to XML tool-call parsing. Returns
 `(content, tool_calls, thinking)`.
 
 ## `session.py` (4.8 KB) — sessions
-`Session.resume/latest/save/export` — conversations persist under `~/.rox/
+`Session.resume/latest/save/export` — conversations persist under `~/.coal/
 sessions/`. Named sessions via `--session work`.
 
 ## `personality.py` (5.7 KB) — adaptive personality
 `Personality` learns from how you talk: trait adjustment, `system_prompt()`
 builds the adapted system prompt (name, traits, style rules). Persists to
-`~/.rox/personality.json`.
+`~/.coal/personality.json`.
 
 ## `router.py` (3.1 KB) — task router + thinking controller
 Classifies the turn's kind (chat, code, tool, image, project, …), picks the
@@ -85,7 +85,7 @@ Sends an image (path) to the local model via the mmproj vision tower;
 
 ## `rag.py` (6.4 KB) — document RAG
 `RAG(root)` — `ingest_text(text, source)`, `search(query)`, `context(query)`
-for the prompt. Index lives under `~/.rox/rag/`. Used by `ingest_docs` /
+for the prompt. Index lives under `~/.coal/rag/`. Used by `ingest_docs` /
 `search_docs` handlers (`tools/handlers_rag.py`).
 
 ## `retrieval.py` (4.1 KB) — retrieval + two-stage STR trigger
@@ -104,11 +104,11 @@ flags (`. -r` ref edit, `. -i` init restyle).
 
 ## `langpacks.py` (11.2 KB) — language packs (P1)
 Curated cheatsheets for TypeScript/React/Tailwind/Vite/Verilog under
-`~/.rox/langpacks/<tech>/cheatsheet.md`. `install_curated()`, `list_packs()`,
+`~/.coal/langpacks/<tech>/cheatsheet.md`. `install_curated()`, `list_packs()`,
 `ingest_all()`. The write path injects the matching pack per file type
-(`rox.py:_langpack_context`).
+(`coal.py:_langpack_context`).
 
-## `generate.py` (2.5 KB) — streaming generation over RoxChat
+## `generate.py` (2.5 KB) — streaming generation over CoalChat
 Streaming generation with the shared surprise signal (research-track helper
 for the training side).
 
@@ -151,22 +151,22 @@ deterministic layer"). Used by `run_local.py --backend hf`.
 
 ## `local_run.py` (5.7 KB) — single local entry point
 Auto-detects the server + best model, `--selftest` tiers RAM, `--backend`
-override (rox/ollama/hf/v2). See `LOCAL_RUN.md`.
+override (coal/ollama/hf/v2). See `LOCAL_RUN.md`.
 
-## `run_local.py` (3.6 KB) — ROX N local runtime launcher
-Loads ROX N on a desktop (RAM + optional small GPU). The documented "talk to
-ROX N" command in `LOCAL_RUN.md`.
+## `run_local.py` (3.6 KB) — Coal local runtime launcher
+Loads Coal on a desktop (RAM + optional small GPU). The documented "talk to
+Coal" command in `LOCAL_RUN.md`.
 
 ## `install.py` (5.9 KB) — installer
-Links model + server into `Program Files\ROX N`, writes `config.json`,
+Links model + server into `Program Files\Coal`, writes `config.json`,
 `--check` verifies. First-run step.
 
 ## `personality.py`, `session.py`, `vision.py` — see above (already covered).
 
 ---
 
-### `start_rox_server.bat` (0.4 KB) — server launcher
-`cmd /c "start /b start_rox_server.bat"` starts llama-server detached with the
+### `start_coal_server.bat` (0.4 KB) — server launcher
+`cmd /c "start /b start_coal_server.bat"` starts llama-server detached with the
 35B model. Manual start path; `server_manager.ensure()` does this automatically
 too.
 
@@ -174,7 +174,7 @@ too.
 
 | File | What it is |
 |------|-----------|
-| `ROX_N.md` (12.2 KB) | **The master system doc** — install, run, capabilities, turn flow, tools table, memory, Vulkan, performance. Start here for product understanding. |
+| `Coal.md` (12.2 KB) | **The master system doc** — install, run, capabilities, turn flow, tools table, memory, Vulkan, performance. Start here for product understanding. |
 | `EVALUATION_REPORT.md` (10.2 KB) | The evaluation report (see `06-…`). |
 | `PLAN_500M_1B.md` | The training build plan (see `07-…`). |
 | `LOCAL_RUN.md` | Local run guide (see `07-…`). |

@@ -1,4 +1,4 @@
-# 01 — HOW ROX N WAS BUILT (the story, decisions, and why)
+# 01 — HOW Coal WAS BUILT (the story, decisions, and why)
 
 This document is the narrative the next company needs before touching code: how
 the system was built in phases, what each phase added, and the decisions that
@@ -8,17 +8,17 @@ are load-bearing. It is honest about what is proven and what is not.
 
 ## 1. The 12-step build (the foundation)
 
-ROX N was built bottom-up in twelve steps. Each step produced something
+Coal was built bottom-up in twelve steps. Each step produced something
 verifiable before the next began:
 
-1. **Config + install** — `rox_config.py` + `install.py` + the install dir
-   under `Program Files\ROX N`. Single source of truth for model, server,
+1. **Config + install** — `coal_config.py` + `install.py` + the install dir
+   under `Program Files\Coal`. Single source of truth for model, server,
    memory, tools, image settings.
 2. **Model server** — llama.cpp `llama-server` serving the 35B GGUF on
    `127.0.0.1:1234`; `server_manager.py` owns start/stop/health/RAM-guard.
-3. **Chat template + streaming** — `rox_template.py` (exact Qwen chat
+3. **Chat template + streaming** — `coal_template.py` (exact Qwen chat
    template, thinking split, tool-call XML) + `streaming.py` (SSE client).
-4. **Chat loop** — `chat.py`/`chat_v2.py`/`rox.py` turn loop:
+4. **Chat loop** — `chat.py`/`chat_v2.py`/`coal.py` turn loop:
    safety → calc → route → memory → rag → personality → stream → tools → store.
 5. **Memory** — `memory/` package: SQLite store, local embeddings, vector
    index, hybrid retrieve, consolidate, profile, model-callable tools,
@@ -61,7 +61,7 @@ beside the brain. `server_manager` auto-steps `gpu_layers` down on VRAM OOM.
 (append-only JSONL change log, auto-hooked into every file tool), `audit.py`
 (missing imports, duplicates, orphans, TODOs), `context.py` (budget-aware
 anti-hallucination prompt blocks). Projects live on the Desktop under
-`ROX Projects\<name>\`; the ledger stays clean in `~/.rox/projects\<name>\`.
+`Coal Projects\<name>\`; the ledger stays clean in `~/.coal/projects\<name>\`.
 
 ## 4. Image generation + editing
 
@@ -71,9 +71,9 @@ Vulkan) → reload the 35B. `tools/handlers_image.py` exposes `generate_image`,
 `edit_image`, `custom_image` (spec parser: style/mood/color/ratio). Images land
 in the project `images\` or workspace and are journaled.
 
-## 5. Part 1 — "build ROX N's own capabilities" (the last build phase)
+## 5. Part 1 — "build Coal's own capabilities" (the last build phase)
 
-The final phase gave ROX N the ability to *learn* and *build*, so it can take a
+The final phase gave Coal the ability to *learn* and *build*, so it can take a
 single prompt and produce whole projects:
 
 - `tools/handlers_rag.py` — `ingest_docs` / `search_docs` / `list_langpacks` /
@@ -81,18 +81,18 @@ single prompt and produce whole projects:
 - `langpacks.py` — curated TS/React/Tailwind/Vite/Verilog cheatsheets; the
   write path injects the matching pack for the file type being written.
 - `tools/handlers_build.py` — `setup_toolchain` (npm/winget/pip per stack) and
-  `build_project` is a **native** flow in `rox.py` (plan → write → audit →
+  `build_project` is a **native** flow in `coal.py` (plan → write → audit →
   repair → verify).
 - `tools/handlers_self.py` — `edit_self`/`backup_self`/`restore_self`/
-  `list_backups`/`restart_self`: ROX N may edit its own core files with backup
+  `list_backups`/`restart_self`: Coal may edit its own core files with backup
   + syntax validation + restart flag.
-- `rox.py` gained `build_project`, `_gen_file`, `_plan_project`,
+- `coal.py` gained `build_project`, `_gen_file`, `_plan_project`,
   `_verify_and_repair` (verify-driven repair loop), `_finish_project`,
   `--resume`/`--finish` CLI flags.
 
 ## 6. Part 2 — autonomous project builds (the stress test)
 
-ROX N was given four project prompts to build on its own:
+Coal was given four project prompts to build on its own:
 
 | Project | Result |
 |---------|--------|
@@ -110,7 +110,7 @@ ROX N was given four project prompts to build on its own:
 > `09-BUILT-PROJECTS.md` for the final per-file state.
 
 The stress test surfaced and fixed a long list of builder bugs — every one of
-them is now handled in `rox.py`/`tools/handlers_fs.py`:
+them is now handled in `coal.py`/`tools/handlers_fs.py`:
 
 - vite/esbuild emit **absolute paths** in errors → `_project_rel()` resolves
   them to real project-relative files (previously repairs wrote to bogus nested
@@ -129,7 +129,7 @@ them is now handled in `rox.py`/`tools/handlers_fs.py`:
 
 **Honest limitation:** the 35B/8K-context model cannot reliably maintain
 strict cross-file type/port contracts across regenerations (Verilog module
-ports, TS interfaces). ROX N now handles everything up to that line
+ports, TS interfaces). Coal now handles everything up to that line
 autonomously; the two ⚠️ projects are the documented ceiling.
 
 ## 7. What is proven vs not

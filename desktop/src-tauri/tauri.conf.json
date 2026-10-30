@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ROX N",
+  "productName": "Coal",
   "version": "0.1.0",
-  "identifier": "ai.rox.n.desktop",
+  "identifier": "ai.coal.n.desktop",
   "build": {
     "frontendDist": "../ui"
   },
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "ROX N — the AI that proves the chip works",
+        "title": "Coal — the AI that proves the chip works",
         "width": 1320,
         "height": 860,
         "minWidth": 900,

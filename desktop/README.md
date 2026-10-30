@@ -1,6 +1,6 @@
-# ROX N Desktop
+# Coal Desktop
 
-A native desktop client for ROX N — a real window, not a terminal.
+A native desktop client for Coal — a real window, not a terminal.
 
 Built with **Rust** (Tauri v2 + WebView2 shell) and **Go** (launcher /
 preflight). The UI is a single static page, so there is no Node build step.
@@ -28,7 +28,7 @@ desktop/
 The window does **not** call the model directly. It owns a child process:
 
 ```
-Tauri (Rust)  ──spawn──►  py -3.15 rox.py --json-repl
+Tauri (Rust)  ──spawn──►  py -3.15 coal.py --json-repl
       ▲                          │
       └──── JSON events ─────────┘   (ready / start / thinking / token /
                                       tool / answer / done / error)
@@ -48,19 +48,19 @@ cargo build --release
 
 # Go launcher
 cd ..\launcher
-go build -o rox-n-launcher.exe .
+go build -o coal-launcher.exe .
 ```
 
 ## Run
 
 ```powershell
-.\desktop\rox-n-launcher.exe
+.\desktop\coal-launcher.exe
 ```
 
 No environment variables needed. The launcher resolves the API key from:
 
 1. `NEBIUS_API_KEY` in the environment, or
-2. `%USERPROFILE%\.rox\nebius.key` — one line, no quotes
+2. `%USERPROFILE%\.coal\nebius.key` — one line, no quotes
 
 If a key is found it configures Nebius automatically:
 
@@ -73,8 +73,8 @@ If a key is found it configures Nebius automatically:
 With no key it falls back to the local model and says so.
 
 The launcher also verifies Python, finds the agent directory, and sets
-`ROX_NO_35B=1` so the 19.7 GB model is never loaded. If
-`rox-n-desktop.exe` is not next to it, it looks in
+`CoalO_35B=1` so the 19.7 GB model is never loaded. If
+`coal-desktop.exe` is not next to it, it looks in
 `src-tauri/target/{debug,release}`.
 
 ## Why Rust for the shell

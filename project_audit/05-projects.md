@@ -2,7 +2,7 @@
 
 ## Purpose
 
-ROX N manages **multi-file, multi-folder projects without hallucinating**
+Coal manages **multi-file, multi-folder projects without hallucinating**
 about the codebase. It tracks every file (hash-verified), journals every
 change, audits consistency, and grounds answers in the real structure.
 
@@ -10,10 +10,10 @@ change, audits consistency, and grounds answers in the real structure.
 
 | Location | Purpose |
 |---|---|
-| `Desktop\ROX Projects\<name>\` | The **source** project folder (user-facing) |
-| `~/.rox/projects/<name>\` | The **ledger** (memory: DB, journal, architecture) |
+| `Desktop\Coal Projects\<name>\` | The **source** project folder (user-facing) |
+| `~/.coal/projects/<name>\` | The **ledger** (memory: DB, journal, architecture) |
 
-Keeping the ledger out of the repo means ROX N's memory never pollutes
+Keeping the ledger out of the repo means Coal's memory never pollutes
 the user's project.
 
 ## Module map
@@ -77,7 +77,7 @@ model answers from the actual code, not assumptions.
 
 ## The create flow (ask-name)
 
-"create a project for X" → ROX N asks the user:
+"create a project for X" → Coal asks the user:
 > "Do you have a name, or should I decide?"
 
 - User names it → use that (validated)
@@ -86,13 +86,13 @@ model answers from the actual code, not assumptions.
 
 ## Auto-journaling
 
-`handlers_fs.set_journal_hook(fn)` — registered by `Rox` on init. After
+`handlers_fs.set_journal_hook(fn)` — registered by `Coal` on init. After
 every `write_file`/`edit_file`/`append_file`/`delete_file`/`move_file`
 that touches a file inside the open project, it records the change.
 
 ## Verified behavior
 
-- Created project at `Desktop\ROX Projects\<name>`
+- Created project at `Desktop\Coal Projects\<name>`
 - Wrote `src/main.py` → auto-journaled ("created")
 - `project_audit` found the intentional missing import + orphan
 - `project_related` mapped `scraper.py → parser.py`

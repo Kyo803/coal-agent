@@ -1,0 +1,20 @@
+{
+  "name": "vision-2",
+  "title": "VISION-2 — a 2-bit GPU chip",
+  "stack": "hdl",
+  "description": "Build VISION-2: a 2-bit-per-pixel graphics chip. It contains a framebuffer (64x32 pixels, 2 bits each = 4096 bits), a VGA-style timing generator producing HSYNC/VSYNC and pixel x/y, a pixel mux that reads the framebuffer and emits the 2-bit color per pixel, and a mode register (0=bitmap, 1=4-color text with an 8x8 font ROM). The testbench must walk a few pixels and print VISION2:PASS.",
+  "context": "Pixel clock 25.175MHz nominal (use clk directly). Visible 640x480 with our 64x32 logical grid: two counters generate x (0..63) and y (0..31); HSYNC asserted during the back porch period x>=40; VSYNC during y>=20..22. Framebuffer address = y*64+x; color = fb[2:0]. Mode register selects bitmap vs text. Font ROM: 8x8, glyphs for A-Z, 0-9, truncated. Text row = y/8, col = x/8. Testbench writes pixels to the frame buffer and checks the emitted color at a couple of (x,y), then prints VISION2:PASS.",
+  "manifest": [
+    {"path": "frame_buf.v", "purpose": "64x32x2 framebuffer (4096 bits) + simple write port for the testbench", "ports": "input clk, input we, input [11:0] waddr, input [1:0] wdata, input [11:0] raddr, output [1:0] rdata"},
+    {"path": "timing.v", "purpose": "generates x,y from pixel clk and HSYNC/VSYNC pulses", "ports": "input clk, input rst, output reg [5:0] x, output reg [4:0] y, output reg hsync, output reg vsync"},
+    {"path": "font_rom.v", "purpose": "8x8 glyph ROM for the text mode (A-Z 0-9)", "ports": "input [5:0] glyph, input [2:0] xo, input [2:0] yo, output bit"},
+    {"path": "pixel_mux.v", "purpose": "selects bitmap color or text-mode foreground/background from the mode register", "ports": "input mode, input [1:0] fb_data, input font_bit, output [1:0] rgb"},
+    {"path": "vision2.v", "purpose": "top: ties timing + framebuffer + font + pixel mux; exposes hsync/vsync/rgb", "ports": "input clk, input rst, input mode, input we, input [11:0] waddr, input [1:0] wdata, output hsync, output vsync, output [1:0] rgb"},
+    {"path": "tb_vision.v", "purpose": "testbench driving writes and pixels; print VISION2:PASS", "ports": ""}
+  ],
+  "criteria": [
+    "file:/home/coal/work/vision-2/vision2.v",
+    "contains:VISION2:PASS",
+    "runs:sh -c \"cd /home/coal/work/vision-2 && iverilog -g2012 -o /tmp/vis.out vision2.v frame_buf.v timing.v font_rom.v pixel_mux.v tb_vision.v && vvp /tmp/vis.out\""
+  ]
+}

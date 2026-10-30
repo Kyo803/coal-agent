@@ -1,6 +1,6 @@
 """Export the submission gallery at 3:2 (Devpost media requirement).
 
-Every source PNG is already rendered by ROX N itself. This only resizes and
+Every source PNG is already rendered by Coal itself. This only resizes and
 letterboxes to 1500x1000 so the gallery is uniform; nothing is redrawn.
 
     py -3.15 make_gallery.py

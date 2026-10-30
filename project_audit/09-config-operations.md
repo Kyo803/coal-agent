@@ -3,11 +3,11 @@
 ## The install layout
 
 ```
-C:\Users\WERU1\AppData\Local\Programs\ROX N\
+C:\Users\WERU1\AppData\Local\Programs\Coal\
   config.json                     central config
   models\
-    ROX-N-35B-A3B-Q4_K_M.gguf     19.7 GB  (the brain)
-    ROX-N-35B-A3B-mmproj-BF16.gguf 0.84 GB (vision projector)
+    Coal-35B-A3B-Q4_K_M.gguf     19.7 GB  (the brain)
+    Coal-35B-A3B-mmproj-BF16.gguf 0.84 GB (vision projector)
   server\
     llama-server.exe              llama.cpp 2.46.0 Vulkan build
     ggml-*.dll                    (Vulkan + CPU backends)
@@ -20,21 +20,21 @@ C:\Users\WERU1\AppData\Local\Programs\ROX N\
     out\     image-generation output scratch
   logs\
     llama_server.log              server log
-    rox.jsonl                     observability log
+    coal.jsonl                     observability log
     *.log                         tuning/benchmark logs
 ```
 
 ## Install / verify
 
 ```powershell
-cd "C:\Users\WERU1\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat"
+cd "C:\Users\WERU1\OneDrive\Documents\Default Project\Coal\lm_track\coal_chat"
 python install.py            # idempotent: link model+server, write config
 python install.py --check    # verify model/server/mmproj paths
 ```
 
 `install.py`:
 - Search paths: the install `models\` (first) then `C:\Models`
-- Links model files under the ROX-N name (source name never revealed)
+- Links model files under the Coal name (source name never revealed)
 - Copies the server exe + DLLs
 - Writes `config.json`
 
@@ -52,26 +52,26 @@ python install.py --check    # verify model/server/mmproj paths
 - Ollama endpoint + `roxn-7b` (the renamed fast fallback model)
 
 ### `memory`
-- `root` (~/.rox), `embed_backend` (ollama), `embed_model`
+- `root` (~/.coal), `embed_backend` (ollama), `embed_model`
   (nomic-embed-text), `ollama_url`, `consolidate_every` (8),
   `recall_k` (8)
 
 ### `personality`
-- `name` (Rox), `adapt_to_user`, `base_traits` (warmth/directness/
+- `name` (Coal), `adapt_to_user`, `base_traits` (warmth/directness/
   humor/formality/verbosity)
 
 ### `rag`
 - `watch_dirs`, `index_path`, `chunk_chars` (800)
 
 ### `tools`
-- `workspace` (~/.rox/work)
+- `workspace` (~/.coal/work)
 - `enabled` — 10 categories (filesystem, search, execution, git, web,
   database, orchestration, output, system, project)
 - `auto_allow` — Tier-1 read/search tools that never prompt
 - `allow_tier2`, `ask_confirms`
 
 ### `project`
-- `source_root` (Desktop), `ledger_root` (~/.rox/projects),
+- `source_root` (Desktop), `ledger_root` (~/.coal/projects),
   `journal_every_write`
 
 ### `image`
@@ -84,15 +84,15 @@ python install.py --check    # verify model/server/mmproj paths
 ## Run commands
 
 ```powershell
-python rox.py                     # interactive
-python rox.py --show-thinking     # stream reasoning
-python rox.py --say "hi"          # one-shot
-python rox.py --status            # JSON report
-python rox.py --session name      # named/resumed session
-python rox.py --no-autostart      # skip server start
+python coal.py                     # interactive
+python coal.py --show-thinking     # stream reasoning
+python coal.py --say "hi"          # one-shot
+python coal.py --status            # JSON report
+python coal.py --session name      # named/resumed session
+python coal.py --no-autostart      # skip server start
 ```
 
-Also: `start_rox_server.bat` — start the model server standalone.
+Also: `start_coal_server.bat` — start the model server standalone.
 
 ## Process layout when running
 
@@ -102,7 +102,7 @@ Also: `start_rox_server.bat` — start the model server standalone.
 | `ollama.exe` (+ runner) | 11434 | embeddings + fallback models (CPU-only) |
 | `sd-cli.exe` | — | spawned only during an image swap |
 
-## The `~/.rox` data dir
+## The `~/.coal` data dir
 
 ```
 memory.db / -shm / -wal   SQLite (sessions, messages, facts, entities)
@@ -120,14 +120,14 @@ ollama.log                CPU-only Ollama startup log
 
 | Symptom | Cause / fix |
 |---|---|
-| Empty replies | Two llama-servers = 2× VRAM (fixed by duplicate guard). Or Ollama stole VRAM → embeddings run CPU-only now. Restart `python rox.py`. |
+| Empty replies | Two llama-servers = 2× VRAM (fixed by duplicate guard). Or Ollama stole VRAM → embeddings run CPU-only now. Restart `python coal.py`. |
 | HTTP 500, `ErrorOutOfDeviceMemory` | VRAM exhausted. Check only ONE llama-server is running; `-ngl 8` is the safe max. |
 | Vector-index crash (dim mismatch) | Fixed: `index.add()` self-heals on embedding-space change. |
 | `ValueError: size 768 vs 0` | Fixed: `embed()` never returns a 0-length vector. |
 | Image reply blank | Fixed: `chat_loop` now prints non-streamed answers. |
 | Slow chat | 35B CPU-bound. `--show-thinking` shows it's working. Consider Ollama fast path. |
 | VRAM "0%" | Task Manager shows the 3D engine; Vulkan compute shows under compute engine. It IS working. |
-| "I am Qwen" | Model weights self-identify; file/code/doc traces are all rebranded to ROX N. |
+| "I am Qwen" | Model weights self-identify; file/code/doc traces are all rebranded to Coal. |
 
 ## Benchmark results (measured)
 

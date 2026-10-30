@@ -1,4 +1,4 @@
-"""Talk to Rox-0: raw continuation chat. No prompts, no templates, no
+"""Talk to Coal-0: raw continuation chat. No prompts, no templates, no
 pretrained weights — your words in, model's continuation out.
   python chat_raw.py
 """
@@ -16,7 +16,7 @@ def main():
     model = TinyGPT()
     model.load_state_dict(torch.load(os.path.join(HERE, "rox0.pt"),
                                      weights_only=True))
-    print("Rox-0 (from scratch, 0.9M params). Type and it continues. "
+    print("Coal-0 (from scratch, 0.9M params). Type and it continues. "
           "'quit' exits.")
     while True:
         try:
@@ -27,7 +27,7 @@ def main():
             break
         if not u.strip():
             continue
-        print("rox-0: " + sample(model, u + " ", n_new=100).strip())
+        print("coal-0: " + sample(model, u + " ", n_new=100).strip())
 
 
 if __name__ == "__main__":

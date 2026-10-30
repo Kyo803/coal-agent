@@ -1,17 +1,17 @@
 # 02 — Core Runtime
 
-## `rox_config.py` — single source of config
+## `coal_config.py` — single source of config
 
 Every module imports the shared `cfg` object from here. It reads
 `config.json` from the install dir, applies defaults, and honors env
 overrides.
 
 **Key behavior:**
-- `SEARCH_PATHS`: `ROX_CONFIG` env → `%LOCALAPPDATA%\Programs\ROX N\config.json` → local `config.json`
+- `SEARCH_PATHS`: `COAL_CONFIG` env → `%LOCALAPPDATA%\Programs\Coal\config.json` → local `config.json`
 - Attribute access: `cfg.model.gguf`, `cfg.memory.root` (auto-expands `~`)
 - Properties: `cfg.base_url` (`http://host:port/v1`), `cfg.memory_root`, `cfg.rag_root`
 - Path helpers: `cfg.model_path()`, `cfg.server_path()`, `cfg.mmproj_path()`
-- Env overrides: `ROX_PORT`, `ROX_MODEL`, `ROX_CONFIG`
+- Env overrides: `COAL_PORT`, `COAL_MODEL`, `COAL_CONFIG`
 - `cfg.report()` → human/JSON status summary
 
 **Important**: `cfg` is a `_Section` dict subclass, so `cfg.get("image", {})`
@@ -66,7 +66,7 @@ reliable; 10 marginal; 12+ OOM. `config.json` uses `gpu_layers: 8`.
   to force a specific tool (used by intent-first path).
 - **max_tokens / temperature** pass-through; write path uses 4096.
 
-## `rox_template.py` — chat template + tool parsing
+## `coal_template.py` — chat template + tool parsing
 
 - `IM_START` / `IM_END` — `<|im_start|>` template markers
 - `TOOL_SCHEMAS` — OpenAI function schemas for memory/document tools
@@ -76,11 +76,11 @@ reliable; 10 marginal; 12+ OOM. `config.json` uses `gpu_layers: 8`.
 - `render_chat(...)` — manual template render (for non-server paths)
 - `BASE_SYSTEM` — base persona (personality.py adapts it)
 
-## `rox_backend.py` — endpoint autodetect
+## `coal_backend.py` — endpoint autodetect
 
 `autodetect()` probes local OpenAI-compatible endpoints (the llama.cpp
 server first, then Ollama) and picks the highest-preference model
-(`PREFERENCE` = roxn-35b > roxn-7b > roxn-3b ...). `RoxBackend` is a
+(`PREFERENCE` = roxn-35b > roxn-7b > coaln-3b ...). `CoalBackend` is a
 minimal client used by eval/chat_v2.
 
 ## `personality.py` — adaptive traits
@@ -89,14 +89,14 @@ Traits in [0,1]: warmth, directness, humor, formality, verbosity.
 
 - `observe(user_text)` — EMA-drifts traits toward the user's measured
   style (word count, formality markers, humor/emoji, casual slang)
-- Persists to `~/.rox/personality.json`
+- Persists to `~/.coal/personality.json`
 - `describe()` → "friendly, very direct, casual, brief"
 - `system_prompt(extra_context)` — builds the system prompt from
   traits + learned style notes + memory/project context
 
 ## `session.py` — conversation persistence
 
-- Sessions are JSON files under `~/.rox/sessions/`
+- Sessions are JSON files under `~/.coal/sessions/`
 - `add`, `save`, `resume(name)`, `latest()`, `list_sessions()`
 - `messages(limit)` → for the model
 - `export_markdown()` → readable chat log
@@ -113,15 +113,15 @@ to the 35B; the Ollama fast path is only used when explicitly enabled.
 - `tool_gate(text)` — sandboxed AST calculator for arithmetic spans
 - `TurnMemory` — TME turn compression (keep high-S, compress low-S)
 
-## `rox.py` CLI
+## `coal.py` CLI
 
 ```
-python rox.py                     # interactive
-python rox.py --say "hi"          # one-shot
-python rox.py --status            # JSON report
-python rox.py --session work      # named session
-python rox.py --show-thinking     # stream reasoning live
-python rox.py --no-autostart      # don't start the server
+python coal.py                     # interactive
+python coal.py --say "hi"          # one-shot
+python coal.py --status            # JSON report
+python coal.py --session work      # named session
+python coal.py --show-thinking     # stream reasoning live
+python coal.py --no-autostart      # don't start the server
 ```
 
 `chat_loop` prints streamed tokens, and if a turn returned a plain-string

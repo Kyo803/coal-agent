@@ -1,6 +1,6 @@
 # 04 — TOOLS LAYER AUDIT (`tools/` — every file)
 
-The tool layer is where ROX N "does things". **369 tools registered across 17
+The tool layer is where Coal "does things". **369 tools registered across 17
 category groups.** All files in `tools/` are documented here.
 
 ---
@@ -11,7 +11,7 @@ category groups.** All files in `tools/` are documented here.
 Single source of truth for every tool: name, category, json-schema params,
 required args, permission tier, and handler. Exposes `SPECS`, `get(name)`,
 `all_specs()`, `lazy_schemas(ensure=…)`, `CATEGORIES` (17 groups), and
-`MEMORY_TOOLS` / `NATIVE_TOOLS` (tools handled natively by `rox.py`, not the
+`MEMORY_TOOLS` / `NATIVE_TOOLS` (tools handled natively by `coal.py`, not the
 executor — `build_project` lives here). **~369 tools.** Adding a tool = add a
 `_mk(...)` row here + the handler function.
 
@@ -105,23 +105,23 @@ run `sd-cli`, reload. Saves PNG into project `images\` + journals.
 
 ### `tools/handlers_rag.py` (5.9 KB) — document ingestion + langpacks (knowledge)
 `ingest_docs` (URL/file/folder/text → RAG), `search_docs`, `list_langpacks`,
-`ingest_langpack`. ROX N "learns".
+`ingest_langpack`. Coal "learns".
 
 ### `tools/handlers_build.py` (3.6 KB) — build helpers (cat. build)
 `setup_toolchain(stack, dir, prod)` — npm/winget/pip per stack
 (web/react/node/python/hdl). `build_project` is registered here with a `None`
-handler (it is native in `rox.py`).
+handler (it is native in `coal.py`).
 
 ### `tools/handlers_self.py` (5.1 KB) — self-modification (cat. self)
 `edit_self` (backup → syntax-validate via `py_compile` → write → restart
 flag), `backup_self`, `restore_self`, `list_backups`, `restart_self`
-(detached relaunch). ROX N may modify its own core files safely.
+(detached relaunch). Coal may modify its own core files safely.
 
 ### `tools/handlers_board.py` — detective board (cat. board)
 `board_search`, `board_entity`, `board_related`, `board_timeline`,
-`board_dossier`, `board_show` (openable card incl. ROX N's reasoning),
+`board_dossier`, `board_show` (openable card incl. Coal's reasoning),
 `board_archive`, `board_stats`. Reads the board off `ctx.board` (set by
-`rox.py`); see `05-MEMORY-PROJECT-AUDIT.md` for the `board/` package.
+`coal.py`); see `05-MEMORY-PROJECT-AUDIT.md` for the `board/` package.
 
 ### `tools/handlers_security.py` — blue-team scanners (cat. security)
 `scan_secrets` (AWS/private keys/JWT/tokens/high-entropy), `sast_check`

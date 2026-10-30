@@ -1,0 +1,15 @@
+{
+  "name": "alu8",
+  "title": "Coal-ALU8 — 8-bit ALU",
+  "stack": "hdl",
+  "description": "Build an 8-bit ALU with flags. Operations: 0 ADD, 1 SUB, 2 AND, 3 OR, 4 XOR, 5 SHL, 6 SHR, 7 CMP (a-b, sets flags). Outputs zero (z) and carry/borrow (c). Testbench prints alu8:PASS.",
+  "context": "Combinational. y is 8-bit. z=1 when y==0. For CMP, y is not used; z and c reflect a-b. c on SUB/CMP = borrow (a<b), on ADD = carry out. Synchronous not required. Testbench must drive a=8'h05,b=8'h03 and CHECK op ADD -> 8'h08, then SUB -> 8'h02, AND/OR/XOR values, then print alu8:PASS.",
+  "manifest": [
+    {"path": "alu8.v", "purpose": "8-bit ALU with z/c flags", "ports": "input [7:0] a, input [7:0] b, input [2:0] op, output reg [7:0] y, output reg z, output reg c", "behavior": "a=05 b=03: op0 ADD->y=08; op1 SUB->y=02,c=0; op2 AND->y=01; op3 OR->y=07; op4 XOR->y=06; op5 SHL(a<<1)->y=0A; op6 SHR(a>>1)->y=02; op7 CMP->c=0. op0 with a=FF b=01 -> y=00,z=1,c=1. print alu8:PASS if all match."}
+  ],
+  "criteria": [
+    "file:/home/coal/work/alu8/alu8.v",
+    "contains:alu8:PASS",
+    "runs:sh -c \"cd /home/coal/work/alu8 && iverilog -g2012 -o /tmp/alu8.out alu8.v tb_alu8.v && vvp /tmp/alu8.out\""
+  ]
+}
