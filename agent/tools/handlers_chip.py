@@ -76,6 +76,15 @@ def chip_build(args, ctx):
             params = {}
     if not spec and not kind:
         return {"ok": False, "output": "spec or kind required"}
+    # an invalid kind (e.g. "combinational") must fall back to the spec,
+    # not fail the whole build and cost a model round
+    if kind:
+        try:
+            from chipflow.designs import GENERATORS
+            if kind not in GENERATORS and kind not in ("composition",):
+                kind = None
+        except Exception:
+            pass
     rep = chipflow.build(name, spec=spec, kind=kind, params=params,
                          max_repairs=int(args.get("repairs") or 3))
     lines = [chipflow.summary_text(rep),
