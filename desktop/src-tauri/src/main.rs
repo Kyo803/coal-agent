@@ -19,6 +19,17 @@ struct Agent {
 
 type Shared = Arc<Mutex<Agent>>;
 
+/// Append a line to %TEMP%\roxn_agent.log for diagnosing the bridge.
+fn alog(s: &str) {
+    use std::io::Write as _;
+    let p = std::env::temp_dir().join("roxn_agent.log");
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true).append(true).open(p)
+    {
+        let _ = writeln!(f, "{s}");
+    }
+}
+
 /// Where the Python agent lives. ROX_DIR wins; otherwise resolve relative to
 /// this crate (desktop/src-tauri -> ../../lm_track/rox_chat).
 fn rox_dir() -> std::path::PathBuf {
@@ -31,6 +42,7 @@ fn rox_dir() -> std::path::PathBuf {
 
 fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
     let dir = rox_dir();
+    alog(&format!("=== spawn agent in {}", dir.display()));
 
     // Prefer the py launcher; fall back to python.
     let mut cmd = Command::new("py");
@@ -60,6 +72,7 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
             {
                 Ok(c) => c,
                 Err(e) => {
+                    alog(&format!("=== spawn failed: {e}"));
                     let _ = app.emit(
                         "agent-error",
                         format!("could not start the agent in {}: {e}", dir.display()),
@@ -83,8 +96,10 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
         let app2 = app.clone();
         std::thread::spawn(move || {
             for line in BufReader::new(out).lines().map_while(Result::ok) {
+                alog(&format!("OUT {line}"));
                 let _ = app2.emit("agent", line);
             }
+            alog("=== agent stdout closed");
             let _ = app2.emit("agent-exit", "");
         });
     }
@@ -92,6 +107,7 @@ fn spawn_agent(app: tauri::AppHandle, shared: Shared) {
         let app3 = app.clone();
         std::thread::spawn(move || {
             for line in BufReader::new(err).lines().map_while(Result::ok) {
+                alog(&format!("ERR {line}"));
                 let _ = app3.emit("agent-stderr", line);
             }
         });
@@ -104,11 +120,15 @@ fn write_line(shared: &tauri::State<'_, Shared>, value: serde_json::Value)
     let mut g = shared.lock().map_err(|e| e.to_string())?;
     match g.stdin.as_mut() {
         Some(stdin) => {
+            alog(&format!("IN  {value}"));
             writeln!(stdin, "{value}").map_err(|e| e.to_string())?;
             stdin.flush().map_err(|e| e.to_string())?;
             Ok(())
         }
-        None => Err("agent is not running".into()),
+        None => {
+            alog("IN  <no stdin: agent not running>");
+            Err("agent is not running".into())
+        }
     }
 }
 
@@ -171,6 +191,37 @@ fn main() {
             let handle = app.handle().clone();
             let sh = app.state::<Shared>().inner().clone();
             spawn_agent(handle, sh);
+
+            // diagnostics hook: ROX_SMOKE="prompt" sends one prompt on start
+            if let Ok(prompt) = std::env::var("ROX_SMOKE") {
+                let sh2 = app.state::<Shared>().inner().clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(6));
+                    if let Ok(mut g) = sh2.lock() {
+                        if let Some(stdin) = g.stdin.as_mut() {
+                            let p = serde_json::json!({ "prompt": prompt });
+                            alog(&format!("SMOKE {p}"));
+                            let _ = writeln!(stdin, "{p}");
+                            let _ = stdin.flush();
+                        }
+                    }
+                });
+            }
+
+            // diagnostics hook: ROX_SMOKE_TOOL='{"tool":"run_command",...}'
+            if let Ok(raw) = std::env::var("ROX_SMOKE_TOOL") {
+                let sh3 = app.state::<Shared>().inner().clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(6));
+                    if let Ok(mut g) = sh3.lock() {
+                        if let Some(stdin) = g.stdin.as_mut() {
+                            alog(&format!("SMOKE_TOOL {raw}"));
+                            let _ = writeln!(stdin, "{raw}");
+                            let _ = stdin.flush();
+                        }
+                    }
+                });
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

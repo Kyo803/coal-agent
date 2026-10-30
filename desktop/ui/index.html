@@ -295,8 +295,21 @@ async function showThumb(path){
   }catch(e){}
 }
 
+let busySince = 0, busyTimer = null;
 function setBusy(b){
-  busy = b; $('spin').textContent = b ? 'working…' : '';
+  busy = b;
+  if (busyTimer) { clearInterval(busyTimer); busyTimer = null; }
+  if (b) {
+    busySince = Date.now();
+    const tick = () => {
+      const s = Math.round((Date.now() - busySince) / 1000);
+      spin.textContent = 'working… ' + s + 's' + (s > 90 ? ' (slow — Ctrl+C)' : '');
+    };
+    tick();
+    busyTimer = setInterval(tick, 1000);
+  } else {
+    spin.textContent = '';
+  }
   drawCursor();
 }
 
@@ -340,13 +353,15 @@ function onEvent(raw){
 function showConfirm(prompt, id){
   $('mBody').textContent = prompt || 'allow this action?';
   $('modal').classList.add('on');
+  cmd.blur();
   drawCursor();
+  try { $('mAllow').focus(); } catch(_) {}
 }
 function answerConfirm(allow){
   $('modal').classList.remove('on');
   if (T) T.core.invoke('send_confirm', { allow }).catch(()=>{});
   el('sys', allow ? 'allow →' : 'deny →');
-  cmd.focus();
+  cmd.focus(); drawCursor();
 }
 
 /* ----------------------------- commands -------------------------------- */
@@ -465,6 +480,12 @@ document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === 'l') {
     e.preventDefault(); term.innerHTML = ''; curThink=curAns=null;
   }
+  if (e.ctrlKey && e.key.toLowerCase() === 'c' && busy) {
+    e.preventDefault();
+    try { T.core.invoke('restart_agent'); } catch(_) {}
+    setBusy(false);
+    el('sys', 'interrupted — agent restarted');
+  }
 });
 
 $('cRail').onclick = () => {
@@ -490,7 +511,8 @@ if (T) {
   });
   T.event.listen('agent-exit', () => {
     $('dot').className = 'dot err'; $('prov').textContent = 'agent stopped';
-    drawCursor();
+    setBusy(false);
+    el('err', 'agent exited — press restart in the top bar');
   });
 } else {
   $('prov').textContent = 'not in tauri';
