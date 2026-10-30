@@ -2,6 +2,8 @@
 
 **Nebius × NVIDIA hackathon submission.**
 
+**Live project page: https://kyo803.github.io/rox-n/**
+
 Describe a chip in English. ROX N writes the RTL, writes an **independent
 reference model of the specification**, generates the testbench from that
 model, and drives a real toolchain — lint, simulation, synthesis with ABC,

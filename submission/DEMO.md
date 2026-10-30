@@ -6,11 +6,18 @@ two notches. Cut every wait longer than ~2 seconds.
 ## Before recording
 
 ```powershell
-$env:NEBIUS_API_KEY = "..."       # so the header shows nebius · nvidia/...
-$env:ROX_NEBIUS_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+# one command: reads the key, points at Nebius, sets ROX_NO_35B, starts the TUI
 cd "C:\Users\gamel\OneDrive\Documents\Default Project\ROX-N\lm_track\rox_chat"
+.\demo.cmd
+```
 
-# warm the toolchain so the first build is not slow on camera
+If the key is not already in the environment, put it in
+`%USERPROFILE%\.rox\nebius.key` (one line, no quotes) and `demo.cmd` will read
+it. The header should show `nebius · nvidia/nemotron-3-super-120b-a12b`.
+
+Warm the toolchain once so the first gate on camera is not slow:
+
+```powershell
 py -3.15 -c "import chipflow; chipflow.build_block('warmup','counter',width=8)"
 ```
 
